@@ -183,9 +183,7 @@ std::vector<float> multiply(const std::vector<float> &vector,
 ### 负载效率均衡
 #### 基于CPU线程数量的任务划分策略
 在本项目中，为了充分利用CPU多核处理的优势，将计算任务按照线程数划分，将稀疏矩阵中所有的非零元素平均地划分到每个线程中，具体计算方式如下。
-$$math
-n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
-$$
+$$n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}$$
 
 `nzz`表示矩阵中非零元素的数量，`id`表示线程标识号，`tnums`表示CPU线程个数。以8×8的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
 
@@ -238,10 +236,10 @@ std::vector<float> multiply(const std::vector<float> &vector,
 ## 开发中遇到的问题与解决方法
 
 ### 编译顺序导致程序异常
-在学习龙芯汇编语言时出现了一个情况，当我用`g++ relu.cpp relu.S -o relu` 和 `g++ relu.S relu.cpp -o relu` 分别编译以上文件时，前者功能正常，后者在relu.cpp中的len值较大时功能异常，出现段错误。这使我非常注意编译程序的顺序。
+在学习龙芯汇编语言时出现了一个情况，当我用`g++ relu.cpp relu.S -o relu` 和 `g++ relu.S relu.cpp -o relu` 分别编译以上文件时，前者功能正常，后者在relu.cpp中的`len`值较大时功能异常，出现段错误。这使我非常注意编译程序的顺序。
 
 ### spmv计算首元素错误
-使用汇编语言写的spmv函数时，计算得到的第一个向量值的结果本应为0，却每次计算都返回一个随机值，经过同伴审查发现是进行累加的浮点寄存器`f0`未开始设为0，使用`fsub.s			$f0,	$f0,	$f0` 将浮点寄存器初始化为0。
+使用汇编语言写的spmv函数时，计算得到的第一个向量值的结果本应为0，却每次计算都返回一个随机值，经过同伴审查发现是进行累加的浮点寄存器`f0`未开始设为0，使用`fsub.s $f0, $f0, $f0` 将浮点寄存器初始化为0。
 
 ### spmv计算错误 
 汇编写的spmv函数计算出现错误结果，通过gdb调试发现是加载数据的偏移位置不对。
