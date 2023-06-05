@@ -183,6 +183,7 @@ std::vector<float> multiply(const std::vector<float> &vector,
 ### 负载效率均衡
 #### 基于CPU线程数量的任务划分策略
 在本项目中，为了充分利用CPU多核处理的优势，将计算任务按照线程数划分，将稀疏矩阵中所有的非零元素平均地划分到每个线程中，具体计算方式如下。
+
 ```math
 n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
 ```
