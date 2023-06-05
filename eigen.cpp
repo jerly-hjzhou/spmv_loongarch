@@ -15,7 +15,7 @@ Eigen::SparseMatrix<float> readSparseMatrix(const std::string &filename) {
 
   int row, col;
   float value;
-  for (int i=0; i<nonZeros; ++i) {
+  for (int i = 0; i < nonZeros; ++i) {
     file >> row >> col >> value;
     sparseMatrix.insert(row, col) = value;
   }
@@ -34,9 +34,7 @@ Vector readVector(const std::string &filename) {
   Vector vector(num);
 
   for (int i = 0; i < num; ++i) {
-    float value;
-    file >> value;
-    vector(i) = value; // 直接使用索引赋值
+    file >> vector(i);
   }
   file.close();
 

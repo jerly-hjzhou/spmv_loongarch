@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <iomanip>
 
-
 DEF_ENV_PARAM(ENABLE_DEBUG)
 
 std::vector<float> readVectorFromFile(const std::string &filepath) {
@@ -63,7 +62,7 @@ int main(int argc, char *argv[]) {
   __TIC__(READ_MATRIX)
   spmv::MatrixCSR matrix = readMatrixFromFile(matrixFile);
   if (ENV_PARAM(ENABLE_DEBUG)) {
-    std::cout << matrix;  
+    std::cout << matrix;
   }
   __TOC__(READ_MATRIX)
 

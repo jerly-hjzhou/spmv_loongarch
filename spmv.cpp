@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   __TIC__(READ_MATRIX)
   spmv::MatrixCSR matrix = spmv::readMatrixFromFile(matrixFile);
   if (ENV_PARAM(ENABLE_DEBUG)) {
-    std::cout << matrix;  
+    std::cout << matrix;
   }
   __TOC__(READ_MATRIX)
 
