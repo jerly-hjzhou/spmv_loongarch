@@ -80,7 +80,7 @@ CSR作为一种稀疏矩阵的存储结构，由3个数组构成：**值**(**val
 
 我们看下面基于CSR数据格式中SPMV串行循环实现，为进行一次乘加操作，我们需要通过内存访问获得参与计算的非零元素、该非零元素的列索引、以及向量中该索引对应的元素值，这需要3次内存访问的操作，且每次内存访问的地址都不连续，内存访问的时间远远超过CPU运算的时间，导致整体运算性能降低。基于CSR格式的SPMV是访存密集型的运算操作，其性能优化应当首先解决访存效率带来的瓶颈问题。在本项目中采用SIMD(单指令多数据流)对访存带来的瓶颈问题进行优化，以提升SPMV的运算性能。
 
-```
+```cpp
 // naive version
 std::vector<float> multiply(const std::vector<float> &vector,
                             const MatrixCSR &matrix) {
@@ -183,7 +183,9 @@ std::vector<float> multiply(const std::vector<float> &vector,
 ### 负载效率均衡
 #### 基于CPU线程数量的任务划分策略
 在本项目中，为了充分利用CPU多核处理的优势，将计算任务按照线程数划分，将稀疏矩阵中所有的非零元素平均地划分到每个线程中，具体计算方式如下。
-$$n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}$$
+```math
+n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
+```
 
 `nzz`表示矩阵中非零元素的数量，`id`表示线程标识号，`tnums`表示CPU线程个数。以8×8的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
 
@@ -227,7 +229,6 @@ std::vector<float> multiply(const std::vector<float> &vector,
 
     ...
 }
-
  
 ```
 
