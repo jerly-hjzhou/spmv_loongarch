@@ -451,8 +451,7 @@ std::vector<float> multiply5(const std::vector<float> &vector,
   int rows = matrix.getRows();
   int nonzeronums = matrix.getNonzeros();
 
-  int thread_nums = 4;
-  // int thread_nums = std::thread::hardware_concurrency();
+  int thread_nums = std::thread::hardware_concurrency();
 
   const std::vector<int> &row_ptr = matrix.getRowPtr();
   const std::vector<int> &col_index = matrix.getColIndex();

@@ -9,12 +9,12 @@ spmv_float:
 	andi			$t0,	$a0,	0x07
 
 .LOOP_MULX:
-	beq				$t1,	$zero,	.REST_MULX
+	beq			$t1,	$zero,	.REST_MULX
 	xvld			$xr1,	$a1,	0
 	addi.d			$a1,	$a1,	32
 	xvld			$xr2,	$a2,	0
 	addi.d			$a2,	$a2,	32
-	b				.LOAD_VEC
+	b			.LOAD_VEC
 .RET_LOOP:
 	xvfmul.s		$xr4,	$xr1,	$xr3
 	xvpermi.q		$xr7,	$xr4,	1
@@ -25,10 +25,10 @@ spmv_float:
 	fadd.s			$f0,	$f0,	$f5
 	fadd.s			$f0,	$f0,	$f4
 	addi.d			$t1,	$t1,	-1
-	b				.LOOP_MULX
+	b			.LOOP_MULX
 		
 .REST_MULX:
-	beq				$t0,	$zero,	.END
+	beq			$t0,	$zero,	.END
 	fld.s			$f1,	$a1,	0   
 	addi.d			$a1,	$a1,	4
 	ld.wu			$t2,	$a2,	0   
@@ -38,7 +38,7 @@ spmv_float:
 	fmul.s			$f7,	$f6,	$f1 
 	fadd.s			$f0,	$f0,	$f7
 	addi.d			$t0,	$t0,	-1
-	b				.REST_MULX
+	b			.REST_MULX
 
 .END:
 	jr $ra
@@ -62,7 +62,7 @@ spmv_float:
 	xvinsve0.w		$xr3,	$xr6,	3  
 
 	xvpickve2gr.wu 	$t2,	$xr2,	4  
-    fldx.s			$f6,	$a3,	$t2 
+	fldx.s			$f6,	$a3,	$t2 
 	xvinsve0.w		$xr3,	$xr6,	4  
 
 	xvpickve2gr.wu 	$t2,	$xr2,	5  
@@ -77,5 +77,5 @@ spmv_float:
 	fldx.s			$f6,	$a3,	$t2 
 	xvinsve0.w		$xr3,	$xr6,	7  
 
-	b				.RET_LOOP
+	b			.RET_LOOP
 
