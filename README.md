@@ -3,18 +3,74 @@
 * 队名：勇敢向前冲
 * 成员：秦寒冰 周浩杰
 * 学校：北京大学
-[[toc]]
 
-## 仓库结构介绍
+## 仓库内容简介
+* **Accuracy/**: 该文件夹保存测试SPMV计算准确性的数据文件，前缀是`matrix`的文件存储的是稀疏矩阵，其格式为：第一行记录的是矩阵行数，矩阵列数，非零元素个数。接下来的每一行记录的是元素的行索引，元素的列索引，元素值。矩阵的行列索引都从0开始。 
+* **eigen.cpp**: 使用线性代数计算库`Eigen`进行稀疏矩阵运算，作为标准的计算结果来验证自己开发的算子的正确性。
+* **env.hpp**: 用于支持程序使用环境变量控制需要的逻辑，比如根据环境变量选择是否要程序打印调试信息。这有助于我们调试代码。
+* **profiling.hpp**: 用于支持查看程序中某段代码的耗时，这有助于我们分析、优化程序性能。
+* **spmv.hpp**: 支持CSR格式的稀疏矩阵向量乘运算
+* **spmv.cpp**: 使用原始的spmv算法
+* **spmv2.cpp**: 使用了SIMD指令的spmv算法
+* **spmv3.cpp**: 使用了OpenMP
+* **spmv4.cpp**: 使用了负载均衡的spmv算法
+* **spmv5.cpp**: 使用了负载均衡和SIMD的spmv算法
+* **spmv_float.S**: 汇编实现SIMD，架构为Loongarch
+* **test_accuracy.sh**: 测试开发的程序是否计算正确
+* **test_performace.sh**: 评估算法相对原始的SPMV的加速比
 
 ## 测试框架介绍与使用
+### 准确性
+`test_accuracy`脚本用来评估自己实现的算法的计算结果的准确性。设计思路是利用`Eigen`库计算得到的结果和自己实现的算法得到的结果作比较，如果相同则说明自己写的代码计算正确。用法为：
+> bash test_accuracy.sh ${可执行程序路径}
+
+例如为了验证原始的SPMV是否实现正确，运行此命令`bash test_accuracy.sh ./spmv`，如果计算正确，终端会打印通过信息，如果不通过，终端会打印第一次计算错误的输出向量的行索引，以及两个程序的输出结果。
+
+### 性能
+`test_performance`脚本使用了22个不同类型的稀疏矩阵用来评估程序相比原始SPMV算法的加速比，记录算子运行的平均时间。用法为：
+> bash test_performance.sh ${可执行程序路径}
+
+例如，运行此命令`bash test_performance.sh ./spmv4` 评估负载均衡的SPMV的性能指标。
+
+参数中可选的可执行程序有[eigen, spmv, spmv2, spmv3, spmv4. spmv5]。为了使用它们需要先使用
+> make
+
+编译Makefile生成可执行程序。
+
+#### 数据集
+我们从[ Sparse Suite Collection](https://sparse.tamu.edu/)选择了22个具有代表性的稀疏矩阵，它们的应用场景有热学、电路仿真等问题。 `test_performance`脚本使用的数据集下载地址点击[这里](https://pan.baidu.com/s/1xqiqJ3GySV2QYSnj4xEhYA?pwd=c57w)。数据集中的稀疏矩阵特点见下表。
+
+
+| 矩阵名称 | 行 x 列 | 非零元素个数 | 稀疏度 |
+| --- | --- | --- | --- |
+| af_shell1 | 504855 x 504855 | 9046868 | 3.55e-05 |
+| amazon0601 | 403394 x 403394 | 3387388 | 2.08e-05 |
+| as-Skitter | 1696415 x 1696415 | 11095298 | 3.86e-06 |
+| ASIC_680k | 682862 x 682862 | 3871773 | 8.303e-06 |
+| boneS10 | 914898 x 914898 | 55468422 | 6.63e-05 |
+| com-Youtube | 1134890 x 1134890 | 5975248 | 4.639e-06 |
+| delaunay_n19 | 524288 x 524288 | 3145646 | 1.14e-05 |
+| FEM_3D_thermal2 | 147900 x 147900 | 3489300 | 1.59e-04 |
+| hugetric-00020 | 7122792 x 7122792 | 21361554 | 4.21e-07 |
+| in-2004 | 1382908 x 1382908 | 16917053 | 8.846e-06 |
+| ldoor | 952203 x 952203 | 23737339 | 2.62e-05 |
+| mc2depi | 525825 x 525825 | 2100225 | 7.59e-06 |
+| memchip | 2707524 x 2707524 | 14810202 | 2.02e-06 |
+| parabolic_fem | 525825 x 525825 | 3674625 | 1.33e-05 |
+| pkustk14 | 151926 x 151926 | 14836504 | 6.428e-04 |
+| poisson3Db | 85623 x 85623 | 2374949 | 3.24e-04 |
+| rajat31 | 4690002 x 4690002 | 20316253 | 9.24e-07 |
+| roadNet-TX | 1393383 x 1393383 | 3843320 | 1.98e-06 |
+| sx-stackoverflow | 2601977 x 2601977 | 36233450 | 5.352e-06 |
+| thermomech_dK | 204316 x 204316 | 2846228 | 6.81e-05 |
+| web-Google | 916428 x 916428 | 5105039 | 6.08e-06 |
+| webbase-1M | 1000005 x 1000005 | 3105536 | 3.106e-06 |
+
 
 ## 效果展示
 
-## 系统框架
-
-
-## SpMV性能瓶颈
+##
+## SPMV性能瓶颈
 ### 访存效率瓶颈
 稀疏矩阵是指矩阵中零值元素的个数远远多于非零元素个数，矩阵中的零值元素在参与向量乘法运算时不起作用，所以现有的稀疏矩阵存储格式大多只保存非零元素，并利用额外数组保存非零元素的位置信息，确保实现SpMV。
 #### 内存访问频繁
@@ -39,9 +95,9 @@ std::vector<float> multiply(const std::vector<float> &vector,
 
 ```
 #### 缓存命中率低
-同时由于稀疏矩阵的非零元素通常分布在不同的行和列上，因此在计算 SpMV 时需要频繁地从内存中读取不同的数据块，而 CPU 的缓存大小是有限的，可能无法容纳整个数据集，因此**缓存命中率低**也会成为 SpMV 的性能瓶颈，总之，内存的访问效率会影响运算时间，这是影响SpMV性能的一大因素。
+同时由于稀疏矩阵的非零元素通常分布在不同的行和列上，因此在计算 SPMV 时需要频繁地从内存中读取不同的数据块，而 CPU 的缓存大小是有限的，可能无法容纳整个数据集，因此**缓存命中率低**也会成为 SPMV 的性能瓶颈，总之，内存的访问效率会影响运算时间，这是影响SpMV性能的一大因素。
 ### 线程并行运算瓶颈
-SpMV 的计算过程可以被视为一系列独立的向量乘法操作，因此可以通过并行计算来提高性能。使用并行加速SpMV计算同样会带来一系列问题，导致各线程无法充分利用CPU资源，从而限制了程序的性能提升。
+SPMV 的计算过程可以被视为一系列独立的向量乘法操作，因此可以通过并行计算来提高性能。使用并行加速SpMV计算同样会带来一系列问题，导致各线程无法充分利用CPU资源，从而限制了程序的性能提升。
 #### 负载不均衡
 由于大多数稀疏矩阵不同的行和列可能包含的非零元素数量差异很大，因此在并行计算时，各线程之间计算任务量有很大的差别，出现负载不均衡，某些线程的空闲状态导致CPU资源无法充分跟利用。在实际的多线程并行性中，整体的计算性能往往由于不平衡的负载而降低。因此，实现负载均衡是提高SpMV性能的另一个关键点。在本项目中采用矩阵分块技术合理分配各线程的计算任务，达到平衡负载的目的。
 #### 额外的通信开销
@@ -51,7 +107,8 @@ SpMV将同一行中的矩阵乘法结果做累加，累加结果保存到结果�
 ### 项目总体方案
 在本项目中，我们提出了一种利用负载平衡和SIMD向量化来同时优化SpMV性能的新方法，在多线程并行运算前采用矩阵分块技术对CSR格式的数据均匀划分，边界值处理次数等于线程数。与传统矩阵块相比，大大减少了边值处理的数量；同时使用Loongson Arch向量指令集实现SIMD优化，程序实现时根据不同的数据类型选择基础向量指令集或扩展向量指令集运算，实现数据的并行运算加速。项目支持int、float、double三种不同的数据类型的SpMV。程序运行流程图如下图所示。
 
-![](https://markdown.liuchengtu.com/work/uploads/upload_db6a001ab85f460c8429c553754abe88.png)
+![](https://markdown.liuchengtu.com/work/uploads/upload_86262c620d3ffab3ef981254b0ee93ef.png)
+
 
 
 ### 基于Loongson Arch的SIMD优化
@@ -90,9 +147,11 @@ SIMD主要针对稀疏矩阵中相同行非零元素的访存与乘加运算优�
 
 下面以int整数为例，介绍具体运算细节。假设vr1，vr2中保存参与乘加运算的非零元素与向量vector中相同索引对应的运算值，这两个向量寄存器均保存了4个int整数浮点数，vr3中保存了向量乘法运算的结果，通过指令vfmadd可实现对应位置的乘加运算，具体操作如下。
 * 指令：vmul.w $vr3, $vr0, $vr1
+
 ![](https://markdown.liuchengtu.com/work/uploads/upload_dc8e0b779c89dac26dc7c352be8e3973.png)
 
 * 指令：vmadd.w $vr0, $vr1, $vr2, $vr3
+
 ![](https://markdown.liuchengtu.com/work/uploads/upload_0b06cb51d78bffaa4a531113bb894ccc.png)
 
 向量指令集的具体使用方式，详见程序源代码。
@@ -101,7 +160,7 @@ SIMD主要针对稀疏矩阵中相同行非零元素的访存与乘加运算优�
 OpenMP（Open Multi-Processing）是一种用于并行计算的编程模型和应用程序接口（API）。它采用的主要策略是通过将计算任务分解成多个子任务，然后将这些子任务分配给不同的线程来实现并行执行。通过特定的编译指令实现并行化，无需显式地管理线程的创建和同步。
 
 在SpMV并行加速中，使用 
-```#pragma omp parallel for```编译指令将外层循环并行化，使得每个线程可以计算矩阵的不同行，OpenMP会自动将循环迭代分配给不同的线程执行。由于矩阵不同行的计算是独立的，不涉及线程之间数据同步的问题，因为可以避免线程间数据竞争的问题。
+```#pragma omp parallel for```编译指令将外层循环并行化，使得每个线程可以计算矩阵的不同行，OpenMP会自动将循环迭代分配给不同的线程执行。由于矩阵不同行的计算是独立的，不涉及线程之间数据同步的问题，因此可以避免线程间数据竞争的问题。
 
 
 ```
@@ -129,19 +188,51 @@ std::vector<float> multiply(const std::vector<float> &vector,
 \begin{cases} nzz/tnums&(0\leq id \leq tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
 
 zz表示矩阵中非零元素的数量，id表示线程标识号，tnums表示CPU线程个数。以8×8的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下**values**、**col_index**数组大小是34。
+
 ![](https://markdown.liuchengtu.com/work/uploads/upload_54dacbf1539ad161a59c645016124d4f.png)
 
 龙芯3C5000系列处理器右4个线程，tnums = 4，nzz = 34， 根据上面公式对各线程中要处理的**values**、**col_index**数组划分，就可以得到下面的结果
+
 ![](https://markdown.liuchengtu.com/work/uploads/upload_5f6e6405d7341188dd9fde5a1233a440.png)
+
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_1e610a4a39d636c6eb4563537932f5f6.png)
 
-该任务划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据，处理显著减少了块间边界数据处理的次数。在该项目只需要边界数据处理等于线程数。
+该任务划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据处理，该方法显著减少了块间边界数据处理的次数。在该项目边界数据处理次数等于线程数。下面伪代码中可以看出各线程运行结束后，边界元素计算结果保存在中间结果数组**result_mid**中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。
+```
+std::vector<float> multiply(const std::vector<float> &vector,
+                            const MatrixCSR &matrix) {
+    
+    ...
+
+    #pragma omp parallel
+    {
+    #pragma omp for schedule(static) nowait
+    for (int i = 0; i < thread_nums; ++i) {
+        thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
+                    values, result, result_mid, vector);
+    }
+    }
+    result[0] = result_mid[0];
+    int sub;
+    for (int i = 1; i < thread_nums; ++i) {
+    sub = i << 1;
+    int tmp1 = start[i];
+    int tmp2 = end[i - 1];
+    if (tmp1 == tmp2) {
+        result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
+    } else {
+        result[tmp1] += result_mid[sub];
+        result[tmp2] += result_mid[sub - 1];
+    }
+
+    ...
+}
+
+ 
+```
 
 为保证程序正确执行，在任务划分的同时需要记录每一组非零向量左右边界元素在原矩阵中的行索引，同时要记录每一组非零元素左边界在**values**数组中的索引，为降低时间复杂度，在本项目中采用二分的思想确定左右边界的行索引信息。
-
-#### 基于负载均衡的SIMD优化
-
 
 
 
