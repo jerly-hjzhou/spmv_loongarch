@@ -33,9 +33,9 @@
 
 ### 性能
 `test_performance`脚本使用了22个不同类型的稀疏矩阵用来评估程序相比原始SPMV算法的加速比，记录算子运行的平均时间。用法为：
-> bash test_performance.sh ${可执行程序路径}
+> bash test_performance.sh ${可执行程序路径} ${迭代次数}
 
-例如，运行此命令`bash test_performance.sh ./spmv4` 评估负载均衡的SPMV的性能指标。
+例如，运行此命令`bash test_performance.sh ./spmv4 100`，脚本会执行100次spmv和spmv4这个程序，计算原始的spmv算法执行的平均时间，计算使用了负载均衡程序的spmv4的平均时间，计算spmv4相对于spmv的加速比。
 
 参数中可选的可执行程序有[eigen, spmv, spmv2, spmv3, spmv4. spmv5]。为了使用它们需要先使用
 > make
