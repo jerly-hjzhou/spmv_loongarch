@@ -14,7 +14,7 @@
 
 ## CSR格式的SPMV介绍
 
-![csr](./pic/csr.png)
+![csr](./pic/csr.png){width=75%}
 
 CSR(Compressed Sparse Row)格式是存储稀疏矩阵的常用数据结构，如上图所示。相同行的元素用同一种颜色表示，矩阵`A`的元素值按序依次排列在`val`数组中，每个元素对应的列索引按同样的顺序存储在`ind` 数组中。`ptr`数组大小是行数加一，数组第一个元素存储的是矩阵第一行之前（不包括第一行）所有非零元素的总数，也就是0，数组第二个元素存储的是矩阵第二行之前（不包括第二行）所有非零元素的总数，以此类推。
 
@@ -65,7 +65,7 @@ sudo make install
 
 例如为了验证原始的SPMV是否实现正确，运行此命令`bash test_accuracy.sh ./spmv`，如果计算正确，终端会打印通过信息，如果不通过，终端会打印第一次计算错误的输出向量的行索引，以及两个程序的输出结果。
 
-![acc](./pic/acc_usage.gif)
+![acc](./pic/acc_usage.gif){width=75%}
 
 ### 评估性能
 `test_performance`脚本使用了22个不同类型的稀疏矩阵用来评估程序相比常规的基于CSR格式的SPMV算法的加速比，记录算子运行的平均时间。用法为：
@@ -73,7 +73,7 @@ sudo make install
 
 例如，运行此命令`bash test_performance.sh ./spmv4 1`，脚本会执行1次spmv和spmv4这个程序，计算原始的spmv算法执行的平均时间，计算使用了负载均衡程序的spmv4的平均时间，计算spmv4相对于spmv的加速比。
 
-![perf](./pic/perf_usage.gif)
+![perf](./pic/perf_usage.gif){width=75%}
 
 
 #### 数据集介绍
@@ -107,11 +107,12 @@ sudo make install
 
 
 ## 效果展示
-我们测试性能的环境是4线程的龙芯3C5000。如下图所示，该图横坐标表示算子的执行时间，横坐标是进行向量乘的稀疏矩阵名称。优化后的算法相比原始的spmv算法在大部分数据上都取得了1.5以上的加速比。只进行多线程加速，绝大部分矩阵都实现了加速，除了`memchip` 和 `sx-stackoverflow`执行时间比原始算法慢了。当对线程的处理原始进行负载均衡后，程序执行时间得到普遍得到显著减少。
-![speed](./pic/speed.PNG)
+我们测试性能的环境是4线程的龙芯3C5000。如下图所示，该图横坐标表示算子的执行时间，横坐标是进行向量乘的稀疏矩阵名称。优化后的算法相比原始的spmv算法在大部分数据上都取得了1.5以上的加速比。只进行多线程加速，绝大部分矩阵都实现了加速，除了`memchip` 和 `sx-stackoverflow`执行时间比原始算法慢了。当对线程处理的元素进行负载均衡后，程序执行时间普遍得到减少。
+
+![speed](./pic/speed.PNG){width=75%}
 
 下图是处理不同稀疏矩阵，负载均衡下的多线程算法、无处理的多线程算法相比于原始算法的加速比。图中纵坐标表示相较于原始SPMV算法的加速比，横坐标是进行向量乘的稀疏矩阵名称。无处理的多线程加速性能表现并不稳定，在`memchip`,`parabolic_fem`的稀疏矩阵的加速比甚至小于1。当负载均衡后，算法效果更好。
-![exec](./pic/exec.PNG)
+![exec](./pic/exec.PNG){width=75%}
 
 ## 优化思路分析
 ### 访存效率瓶颈
@@ -160,7 +161,9 @@ SIMD 是指单指令多数据流（Single Instruction Multiple Data）的并行�
 向量化可以通过减少指令数和减少数据访问次数来缓解访存带来的性能瓶颈，因为向量化指令可以同时处理多个数据元素，从而减少了指令数，同时也减少了数据访问次数。例如，在计算稀疏矩阵向量乘法时，可以使用向量化指令同时处理多个非零元素和对应的向量元素，从而减少了非零元素和向量元素的访问次数，提高了计算效率。
 
 在 SIMD 指令集中，一条指令可以同时处理多个数据元素，指令数量减少的同时也减少了数据的访问次数，能有效缓解内存访问效率低带来的瓶颈问题。
+
 **LoongArch向量指令集**
+
 龙芯架构下的向量扩展指令包括向量扩展(Loongson SIMD Extension,.简称LSX)和高级向量扩展(Loongson Advanced SIMD Extension,简称LASX)两个部分。两个扩展部分均采用SIMD指令且指令功能基本一致，区别主要在于LSX操作的向量位宽是128位而LASX操作的向量位宽是256位。
 
 向量指令对向量寄存器进行操作，LSX中有32个128位的向量寄存器v0 ~ v31，LASX在有32个256位的向量寄存器x0 ~ x31，其中扩展向量寄存器与向量寄存器低128位复用，低64位与同号的浮点寄存器复用。向量指令操作向量寄存器时总是以128位/256位作为一个寻址单位。
@@ -174,7 +177,9 @@ SIMD 是指单指令多数据流（Single Instruction Multiple Data）的并行�
 | double     | 8     | 8     |
 
 以单精度浮点数float为例，float所占的字节是4，对应32位，一个128位向量寄存器从低位到高位可保存4个单精度浮点数，一个256位向量寄存器从低位到高位可保存8个单精度浮点数。如果数据存储地址连续，那么利用向量指令一次访存可获取4/8个有效数据，减少访存次数。
+
 **SIMD优化**
+
 SIMD主要针对稀疏矩阵中相同行非零元素的访存与乘加运算优化。在本项目中使用不同的访存、运算向量指令，支持int、double、float三种数据类型的SIMD优化，采用汇编程序语言实现，加速SPMV运算效率，突破访存带来的瓶颈问题。
 
 * 对于float单精度浮点数，指令xvld访存一次获取8个矩阵中的非零元素
@@ -225,58 +230,82 @@ std::vector<float> multiply(const std::vector<float> &vector,
 但多线程并行处理不可避免地带来负载不平衡的问题。这主要是由矩阵数据的分布特性决定的。如果矩阵的非零元素分布不均匀，某些行具有较多的非零元素，而其他行只有很少的非零元素。这导致某些线程处理更多的非零元素，而其他线程处理较少的非零元素，某些线程提前进入空闲态，导致CPU资源不能充分利用。在本项目中，采用一种基于CPU线程数量的任务划分策略，保证每个线程具有绝对的负载均衡，并分别处理每个线程中的左、右边界元素，减少线程间的通信开销。
 
 #### 负载均衡策略
-在本项目中，为了充分利用CPU多核处理的优势，将计算任务按照线程数划分，将稀疏矩阵中所有的非零元素平均地划分到每个线程中，具体计算方式如下。
+在本项目中，为了充分利用CPU多核处理的优势，我们将计算任务按照线程数近乎绝对均匀划分，具体就是将稀疏矩阵中所有的非零元素的乘法运算平均地划分到每个线程中，每个线程分到的非零元素个数`n`计算方式如下。
 
 ```math
-n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
+n_id=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
 ```
 
-`nzz`表示矩阵中非零元素的数量，`id`表示线程标识号，`tnums`表示CPU线程个数。以8×8的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
+`nzz`表示矩阵中非零元素的数量，`id`表示线程序号，`tnums`表示CPU线程个数。以 $`8 \times 8`$ 的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
 
-![](https://markdown.liuchengtu.com/work/uploads/upload_54dacbf1539ad161a59c645016124d4f.png)
+![ma](./pic/matrix.png)
 
-龙芯3C5000系列处理器右4个线程，tnums = 4，nzz = 34， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下面的结果
+
+龙芯3C5000系列处理器有4个线程，也就是 $`tnums = 4`$ ，非零元素个数 $`nzz = 34`$ ， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下图的结果，`Thread1`，`Thread2`，`Thread3`分到 $`34/4=8`$ 个元素，`Thread4`分到 $`34- 8 \times 3 = 10`$ 个元素。
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_5f6e6405d7341188dd9fde5a1233a440.png)
 
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_1e610a4a39d636c6eb4563537932f5f6.png)
 
-该任务划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据处理，该方法显著减少了块间边界数据处理的次数。在该项目边界数据处理次数等于线程数。下面伪代码中可以看出各线程运行结束后，边界元素计算结果保存在中间结果数组`result_mid`中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。
+该划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据处理，该方法显著减少了块间边界数据处理的次数。边界数据处理次数等于线程数。
+接下来介绍如何获取边界元素的信息。线程的左边界的元素在`values`,`col_index`数组里的索引是 $`[0, n, 2*n, ..., (tnums-1)*n ] (n=\frac{nzz}{tnums})`$ ，左边界元素的行索引可以通过对`row_ptr`数组进行二分获得。代码如下
 
 ```cpp
-std::vector<float> multiply(const std::vector<float> &vector,
-                            const MatrixCSR &matrix) {
-    
-    ...
+int binary_search(const std::vector<int> &row_ptr, int num, int end) {
+  int l, r, h, t = 0;
+  l = 0, r = end;
+  while (l <= r) {
+    h = (l + r) >> 1;
+    if (row_ptr[h] >= num) {
+      r = h - 1;
+    } else {
+      l = h + 1;
+      t = h;
+    }
+  }
+  return t;
+}
+```
 
-    #pragma omp parallel
-    {
-    #pragma omp for schedule(static) nowait
+继续以之前提到的 $`8 \times 8`$ 的矩阵为例，其 $`row_ptr=[0, 5, 9, 9, 15, 20, 23, 26, 34]`$ 以及 $`n=8`$ ，我们利用二分法找索引值为8的元素的所在行的演示过程如下图。
+![bis](./pic/bs.png){width=55%}
+
+
+在各线程运行结束后，边界元素计算结果保存在中间结果数组`result_mid`中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。核心代码如下所示
+
+```cpp
+std::vector<float> multiply4(const std::vector<float> &vector,
+                             const MatrixCSR &matrix) {
+  ...
+
+#pragma omp parallel
+  {
+#pragma omp for schedule(static) nowait
     for (int i = 0; i < thread_nums; ++i) {
-        thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
+      thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
                     values, result, result_mid, vector);
     }
-    }
-    result[0] = result_mid[0];
-    int sub;
-    for (int i = 1; i < thread_nums; ++i) {
+  }
+  result[0] = result_mid[0];
+  int sub;
+  // process the boundary data to get the final result
+  for (int i = 1; i < thread_nums; ++i) {
     sub = i << 1;
     int tmp1 = start[i];
     int tmp2 = end[i - 1];
     if (tmp1 == tmp2) {
-        result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
+      result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
     } else {
-        result[tmp1] += result_mid[sub];
-        result[tmp2] += result_mid[sub - 1];
+      result[tmp1] += result_mid[sub];
+      result[tmp2] += result_mid[sub - 1];
     }
+  }
 
-    ...
+  return result;
 }
  
 ```
-
-为保证程序正确执行，在任务划分的同时需要记录每一组非零向量左右边界元素在原矩阵中的行索引，同时要记录每一组非零元素左边界在`values`数组中的索引，为降低时间复杂度，在本项目中采用二分的思想确定左右边界的行索引信息。
 
 ## 开发中遇到的问题与解决方法
 
@@ -285,12 +314,21 @@ std::vector<float> multiply(const std::vector<float> &vector,
 在学习龙芯汇编语言时出现了一个情况，当我用`g++ relu.cpp relu.S -o relu` 和 `g++ relu.S relu.cpp -o relu` 分别编译以上文件时，前者功能正常，后者在relu.cpp中的`len`值较大时功能异常，出现段错误。这使我非常注意编译程序的顺序。
 
 **spmv计算首元素错误**
+* 问题描述
 
-使用汇编语言写的spmv函数时，计算得到的第一个向量值的结果本应为0，却每次计算都返回一个随机值，经过同伴审查发现是进行累加的浮点寄存器`f0`未开始设为0，使用`fsub.s $f0, $f0, $f0` 将浮点寄存器初始化为0。
+使用汇编语言写的spmv函数时，计算得到的第一个向量值的结果本应为0，却每次计算都返回一个随机值。
+* 解决方法
 
-**spmv计算错误**
+经过同伴审查发现是进行累加的浮点寄存器`f0`未开始设为0，使用`fsub.s $f0, $f0, $f0` 将浮点寄存器初始化为0。
 
-汇编写的spmv函数计算出现错误结果，通过gdb调试发现是加载数据的偏移位置不对。
+**汇编指令后缀使用不当导致计算错误**
+* 问题描述
+
+汇编写的spmv函数计算出现错误结果。
+* 解决方法
+
+通过gdb调试发现是加载数据的偏移位置不对。具体表现为龙芯向量扩展指令`xvld $xr1, $a0, 0` 采用寄存器值+立即数的方式寻址，每次可以访问256位连续内存空间，并将数据存储到`xr1`寄存器中。
+我们在程序设计时每次load完256位的数据，便更新寄存器`a0`中的地址，为下一次load数据做准备，由于3C5000是LA64架构，地址都是64位的，地址更新时的加法运算应该采用`.d`后缀，正确写法`add.d $a0, $a0, 32`，地址更新以字节为单位，使用指令`add.wu`导致计算得到非法地址，不能访存正确的数据元素，导致结果错误。龙芯架构中`.d`表示64位，`.w`表示32位
 
 ## 文献调研
 1. Williams S, Oliker L, Vuduc R, et al. Optimization of sparse matrix-vector multiplication on emerging multicore platforms[C]//Proceedings of the 2007 ACM/IEEE Conference on Supercomputing. 2007: 1-12.
