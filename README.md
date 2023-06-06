@@ -239,7 +239,7 @@ n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id=
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_54dacbf1539ad161a59c645016124d4f.png)
 
-龙芯3C5000系列处理器右4个线程，tnums = 4，nzz = 34， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下图的结果，`Thread1`，`Thread2`，`Thread3`，`Thread4`分到 34/4=8个元素，`Thread5`分到 $`34- 8 \times 3 = 10`$ 个元素。
+龙芯3C5000系列处理器右4个线程，$`tnums = 4`$，$`nzz = 34`$ ， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下图的结果，`Thread1`，`Thread2`，`Thread3`，`Thread4`分到 $`34/4=8`$ 个元素，`Thread5`分到 $`34- 8 \times 3 = 10`$ 个元素。
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_5f6e6405d7341188dd9fde5a1233a440.png)
 
