@@ -14,7 +14,7 @@
 
 ## CSR格式的SPMV介绍
 
-![csr](./pic/csr.png)
+![csr](./pic/csr.png){width=75%}
 
 CSR(Compressed Sparse Row)格式是存储稀疏矩阵的常用数据结构，如上图所示。相同行的元素用同一种颜色表示，矩阵`A`的元素值按序依次排列在`val`数组中，每个元素对应的列索引按同样的顺序存储在`ind` 数组中。`ptr`数组大小是行数加一，数组第一个元素存储的是矩阵第一行之前（不包括第一行）所有非零元素的总数，也就是0，数组第二个元素存储的是矩阵第二行之前（不包括第二行）所有非零元素的总数，以此类推。
 
@@ -65,7 +65,7 @@ sudo make install
 
 例如为了验证原始的SPMV是否实现正确，运行此命令`bash test_accuracy.sh ./spmv`，如果计算正确，终端会打印通过信息，如果不通过，终端会打印第一次计算错误的输出向量的行索引，以及两个程序的输出结果。
 
-![acc](./pic/acc_usage.gif)
+![acc](./pic/acc_usage.gif){width=75%}
 
 ### 评估性能
 `test_performance`脚本使用了22个不同类型的稀疏矩阵用来评估程序相比常规的基于CSR格式的SPMV算法的加速比，记录算子运行的平均时间。用法为：
@@ -73,7 +73,7 @@ sudo make install
 
 例如，运行此命令`bash test_performance.sh ./spmv4 1`，脚本会执行1次spmv和spmv4这个程序，计算原始的spmv算法执行的平均时间，计算使用了负载均衡程序的spmv4的平均时间，计算spmv4相对于spmv的加速比。
 
-![perf](./pic/perf_usage.gif)
+![perf](./pic/perf_usage.gif){width=75%}
 
 
 #### 数据集介绍
@@ -108,10 +108,11 @@ sudo make install
 
 ## 效果展示
 我们测试性能的环境是4线程的龙芯3C5000。如下图所示，该图横坐标表示算子的执行时间，横坐标是进行向量乘的稀疏矩阵名称。优化后的算法相比原始的spmv算法在大部分数据上都取得了1.5以上的加速比。只进行多线程加速，绝大部分矩阵都实现了加速，除了`memchip` 和 `sx-stackoverflow`执行时间比原始算法慢了。当对线程的处理原始进行负载均衡后，程序执行时间得到普遍得到显著减少。
-![speed](./pic/speed.PNG)
+
+![speed](./pic/speed.PNG){width=75%}
 
 下图是处理不同稀疏矩阵，负载均衡下的多线程算法、无处理的多线程算法相比于原始算法的加速比。图中纵坐标表示相较于原始SPMV算法的加速比，横坐标是进行向量乘的稀疏矩阵名称。无处理的多线程加速性能表现并不稳定，在`memchip`,`parabolic_fem`的稀疏矩阵的加速比甚至小于1。当负载均衡后，算法效果更好。
-![exec](./pic/exec.PNG)
+![exec](./pic/exec.PNG){width=75%}
 
 ## 优化思路分析
 ### 访存效率瓶颈
@@ -268,7 +269,7 @@ int binary_search(const std::vector<int> &row_ptr, int num, int end) {
 ```
 
 继续以之前提到的 $`8 \times 8`$ 的矩阵为例，其 $`row_ptr=[0, 5, 9, 9, 15, 20, 23, 26, 34]`$ 以及 $`n=8`$ ，我们利用二分法找索引值为8的元素的所在行的演示过程如下图。
-![bis](./pic/bs.png)
+![bis](./pic/bs.png){width=55%}
 
 
 在各线程运行结束后，边界元素计算结果保存在中间结果数组`result_mid`中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。核心代码如下所示
