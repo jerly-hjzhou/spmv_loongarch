@@ -1,2 +1,10 @@
 dataset/
+output/
 *.log
+eigen
+spmv
+spmv1
+spmv2
+spmv3
+spmv4
+spmv5

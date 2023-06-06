@@ -4,7 +4,7 @@ DATASET=("ASIC_680k.mtx" "FEM_3D_thermal2.mtx" "af_shell1.mtx" "amazon0601.mtx"
          "memchip.mtx" "parabolic_fem.mtx" "pkustk14.mtx" "poisson3Db.mtx"
          "rajat31.mtx" "roadNet-TX.mtx" "sx-stackoverflow.mtx" "thermomech_dK.mtx"
          "web-Google.mtx" "webbase-1M.mtx")
-ITERATION=1
+ITERATION=$2
 
 OUT=output
 mkdir -p $OUT
