@@ -237,7 +237,8 @@ n_id=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(
 
 `nzz`表示矩阵中非零元素的数量，`id`表示线程序号，`tnums`表示CPU线程个数。以 $`8 \times 8`$ 的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
 
-![](https://markdown.liuchengtu.com/work/uploads/upload_54dacbf1539ad161a59c645016124d4f.png)
+![ma](./pic/matrix.png)
+
 
 龙芯3C5000系列处理器有4个线程，也就是 $`tnums = 4`$ ，非零元素个数 $`nzz = 34`$ ， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下图的结果，`Thread1`，`Thread2`，`Thread3`分到 $`34/4=8`$ 个元素，`Thread4`分到 $`34- 8 \times 3 = 10`$ 个元素。
 
