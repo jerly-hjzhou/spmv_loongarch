@@ -165,6 +165,7 @@ void printData(const std::vector<float> &result,
 }
 
 // naive version
+// we only use for loop to calculate the result vector
 std::vector<float> multiply(const std::vector<float> &vector,
                             const MatrixCSR &matrix) {
   int cols = matrix.getCols();
@@ -187,7 +188,8 @@ std::vector<float> multiply(const std::vector<float> &vector,
   return result;
 }
 
-// only simd
+//only use SIMD for SpMV
+// use lasx and lsx in Loongson Arch to calcalate the result every row
 std::vector<float> multiply2(const std::vector<float> &vector,
                              const MatrixCSR &matrix) {
   int rows = matrix.getRows();
@@ -210,7 +212,7 @@ std::vector<float> multiply2(const std::vector<float> &vector,
   return result;
 }
 
-// multi-thread OpenMP version
+//only use  OpenMP for SpMV
 std::vector<float> multiply3(const std::vector<float> &vector,
                              const MatrixCSR &matrix) {
   int cols = matrix.getCols();
@@ -233,6 +235,7 @@ std::vector<float> multiply3(const std::vector<float> &vector,
   return result;
 }
 
+//use binary search to find the row index of each boundary element for each thread
 int binary_search(const std::vector<int> &row_ptr, int num, int end) {
   int l, r, h, t = 0;
   l = 0, r = end;
@@ -247,7 +250,7 @@ int binary_search(const std::vector<int> &row_ptr, int num, int end) {
   }
   return t;
 }
-
+// load balance  by the number of the threads
 void albus_balance(const MatrixCSR &matrix, std::vector<int> &start,
                    std::vector<int> &end, std::vector<int> &start1,
                    std::vector<int> &end1, int thread_nums) {
@@ -269,7 +272,9 @@ void albus_balance(const MatrixCSR &matrix, std::vector<int> &start,
     end1[i - 1] = start1[i];
   }
 }
-
+//the process for every thread
+//use variable thread_id to choose the current thread
+//in thread_block1,only use albus for every thread
 void thread_block1(int thread_id, int start, int end, int start2, int end2,
                    const std::vector<int> &row_ptr,
                    const std::vector<int> &col_index,
@@ -328,7 +333,9 @@ void thread_block1(int thread_id, int start, int end, int start2, int end2,
   }
   }
 }
-
+//Multiply and add operations with non-zero elements
+//if the number of non-zero elements is larger than eight, use SIMD
+//else use for loop for calculation
 float calculation(const int start, const int end,
                   const std::vector<float> &values,
                   const std::vector<int> &col_index,
@@ -345,7 +352,7 @@ float calculation(const int start, const int end,
   }
   return res;
 }
-
+//in thread_block2, use albus and SIMD for every thread
 void thread_block2(int thread_id, int start, int end, int start2, int end2,
                    const std::vector<int> &row_ptr,
                    const std::vector<int> &col_index,
@@ -390,7 +397,7 @@ void thread_block2(int thread_id, int start, int end, int start2, int end2,
   }
 }
 
-// ALBUS +openmp
+//use ALBUS and OpenMp for SpMV
 std::vector<float> multiply4(const std::vector<float> &vector,
                              const MatrixCSR &matrix) {
   int cols = matrix.getCols();
@@ -429,6 +436,7 @@ std::vector<float> multiply4(const std::vector<float> &vector,
   }
   result[0] = result_mid[0];
   int sub;
+  //process the boundary data to get the final result
   for (int i = 1; i < thread_nums; ++i) {
     sub = i << 1;
     int tmp1 = start[i];
@@ -444,7 +452,7 @@ std::vector<float> multiply4(const std::vector<float> &vector,
   return result;
 }
 
-// albus+simd
+//use ALBUS and SIMD for SpMV
 std::vector<float> multiply5(const std::vector<float> &vector,
                              const MatrixCSR &matrix) {
   int cols = matrix.getCols();
