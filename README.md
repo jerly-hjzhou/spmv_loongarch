@@ -48,14 +48,17 @@ for (i = 0; i < m; ++i) {
 ## 测试框架介绍与使用
 ### 环境搭建
 本项目的`eigen.cpp`使用了`Eigen`库，按照如下流程按照到计算机上，同时我们使用的机器架构为`loongarch64`。
-> wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz # 下载源代码
-> tar -zxvf eigen-3.4.0.tar.gz #解压
-> cd eigen-3.4.0
-> mkdir build && cd build
-> cmake ..
-> sudo make install 
+```
+wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz # 下载源代码
 
-克隆本项目，使用`make` 即可编译出所有的可执行程序。
+tar -zxvf eigen-3.4.0.tar.gz #解压
+cd eigen-3.4.0
+mkdir build && cd build
+cmake ..
+sudo make install 
+```
+
+安装完成后，克隆本项目，进入主目录使用`make` 即可编译出所有的可执行程序。
 
 ### 评估正确性
 `test_accuracy`脚本用来评估自己实现的算法的计算结果的准确性。设计思路是利用`Eigen`库计算得到的结果和自己实现的算法得到的结果作比较，如果相同则说明自己写的代码计算正确。用法为：
@@ -75,7 +78,7 @@ for (i = 0; i < m; ++i) {
 
 
 #### 数据集介绍
-我们从[ Sparse Suite Collection](https://sparse.tamu.edu/)选择了22个具有代表性的稀疏矩阵，它们的应用场景有热学、电路仿真等问题。 `test_performance`脚本使用的数据集下载地址点击[这里](https://pan.baidu.com/s/1xqiqJ3GySV2QYSnj4xEhYA?pwd=c57w)。数据集中的稀疏矩阵特点见下表。括号中的内容是矩阵名字的简称，用于画性能比较图，方便作为横坐标。
+我们从[ Sparse Suite Collection](https://sparse.tamu.edu/),选择了22个具有代表性的稀疏矩阵。Sparse Suite Collection收集了大量在实际场景应用广泛的稀疏矩阵。这些矩阵集广泛用于稀疏矩阵算法的开发和性能评估，因为人工生成的矩阵会对实验产生一些误导性。 `test_performance`脚本使用的数据集下载地址点击[这里](https://pan.baidu.com/s/1xqiqJ3GySV2QYSnj4xEhYA?pwd=c57w)。数据集中的稀疏矩阵特点见下表。括号中的内容是矩阵名字的简称，用于画性能比较图，方便作为横坐标。
 
 
 | 矩阵名称 | 行 x 列 | 非零元素个数 | 稀疏度 |
