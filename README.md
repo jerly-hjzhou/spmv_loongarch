@@ -153,14 +153,14 @@ SPMV将同一行中的矩阵乘法结果做累加，累加结果保存到结果�
 ![](https://markdown.liuchengtu.com/work/uploads/upload_86262c620d3ffab3ef981254b0ee93ef.png)
 
 ### 基于LoongArch的SIMD优化
-#### SIMD
+**SIMD**
 
 SIMD 是指单指令多数据流（Single Instruction Multiple Data）的并行计算模式。它采用一条指令，同时对多个数据进行操作，从而充分利用 CPU 的并行计算能力，提高计算效率。SIMD 指令集通常包括多种数据类型，如整数、浮点数、向量等，可以在不同的应用场景中使用。SPMV中多次进行向量乘法操作，包含基本的乘法运算、累加运算，采用SIMD计算模式，一条指令完成多次运算，实现数据运算向量化，提高数据并行性和计算效率。
 
 向量化可以通过减少指令数和减少数据访问次数来缓解访存带来的性能瓶颈，因为向量化指令可以同时处理多个数据元素，从而减少了指令数，同时也减少了数据访问次数。例如，在计算稀疏矩阵向量乘法时，可以使用向量化指令同时处理多个非零元素和对应的向量元素，从而减少了非零元素和向量元素的访问次数，提高了计算效率。
 
 在 SIMD 指令集中，一条指令可以同时处理多个数据元素，指令数量减少的同时也减少了数据的访问次数，能有效缓解内存访问效率低带来的瓶颈问题。
-#### LoongArch向量指令集
+**LoongArch向量指令集**
 龙芯架构下的向量扩展指令包括向量扩展(Loongson SIMD Extension,.简称LSX)和高级向量扩展(Loongson Advanced SIMD Extension,简称LASX)两个部分。两个扩展部分均采用SIMD指令且指令功能基本一致，区别主要在于LSX操作的向量位宽是128位而LASX操作的向量位宽是256位。
 
 向量指令对向量寄存器进行操作，LSX中有32个128位的向量寄存器v0 ~ v31，LASX在有32个256位的向量寄存器x0 ~ x31，其中扩展向量寄存器与向量寄存器低128位复用，低64位与同号的浮点寄存器复用。向量指令操作向量寄存器时总是以128位/256位作为一个寻址单位。
@@ -174,7 +174,7 @@ SIMD 是指单指令多数据流（Single Instruction Multiple Data）的并行�
 | double     | 8     | 8     |
 
 以单精度浮点数float为例，float所占的字节是4，对应32位，一个128位向量寄存器从低位到高位可保存4个单精度浮点数，一个256位向量寄存器从低位到高位可保存8个单精度浮点数。如果数据存储地址连续，那么利用向量指令一次访存可获取4/8个有效数据，减少访存次数。
-#### 基于LoongArch的SIMD优化
+**SIMD优化**
 SIMD主要针对稀疏矩阵中相同行非零元素的访存与乘加运算优化。在本项目中使用不同的访存、运算向量指令，支持int、double、float三种数据类型的SIMD优化，采用汇编程序语言实现，加速SPMV运算效率，突破访存带来的瓶颈问题。
 
 * 对于float单精度浮点数，指令xvld访存一次获取8个矩阵中的非零元素
@@ -224,7 +224,7 @@ std::vector<float> multiply(const std::vector<float> &vector,
 
 但多线程并行处理不可避免地带来负载不平衡的问题。这主要是由矩阵数据的分布特性决定的。如果矩阵的非零元素分布不均匀，某些行具有较多的非零元素，而其他行只有很少的非零元素。这导致某些线程处理更多的非零元素，而其他线程处理较少的非零元素，某些线程提前进入空闲态，导致CPU资源不能充分利用。在本项目中，采用一种基于CPU线程数量的任务划分策略，保证每个线程具有绝对的负载均衡，并分别处理每个线程中的左、右边界元素，减少线程间的通信开销。
 
-### 负载均衡策略
+#### 负载均衡策略
 在本项目中，为了充分利用CPU多核处理的优势，将计算任务按照线程数划分，将稀疏矩阵中所有的非零元素平均地划分到每个线程中，具体计算方式如下。
 
 ```math
@@ -294,3 +294,11 @@ std::vector<float> multiply(const std::vector<float> &vector,
 
 ## 文献调研
 1. Williams S, Oliker L, Vuduc R, et al. Optimization of sparse matrix-vector multiplication on emerging multicore platforms[C]//Proceedings of the 2007 ACM/IEEE Conference on Supercomputing. 2007: 1-12.
+2. Grossman M, Thiele C, Araya-Polo M, et al. A survey of sparse matrix-vector multiplication performance on large matrices[J]. arXiv preprint arXiv:1608.00636, 2016.
+3. Bian H, Huang J, Liu L, et al. ALBUS: A method for efficiently processing SpMV using SIMD and Load balancing[J]. Future Generation Computer Systems, 2021, 116: 371-392.
+4. Giannoula C, Fernandez I, Luna J G, et al. Sparsep: Towards efficient sparse matrix vector multiplication on real processing-in-memory architectures[J]. Proceedings of the ACM on Measurement and Analysis of Computing Systems, 2022, 6(1): 1-49.
+5. Ohshima S, Katagiri T, Matsumoto M. Performance optimization of SpMV using CRS format by considering OpenMP scheduling on CPUs and MIC[C]//2014 IEEE 8th International Symposium on Embedded Multicore/Manycore SoCs. IEEE, 2014: 253-260.
+6. 李亿渊, 薛巍, 陈德训, 等. 稀疏矩阵向量乘法在申威众核架构上的性能优化[J]. 计算机学报, 2020, 6.
+7. Merrill D, Garland M. Merge-based parallel sparse matrix-vector multiplication[C]//SC'16: Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis. IEEE, 2016: 678-689.
+8. Romero L F, Zapata E L. Data distributions for sparse matrix vector multiplication[J]. Parallel Computing, 1995, 21(4): 583-605.
+9. Vastenhouw B, Bisseling R H. A Two-Dimensional Data Distribution Method for Parallel Sparse Matrix-Vector Multiplication[J].
