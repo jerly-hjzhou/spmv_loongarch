@@ -232,55 +232,78 @@ std::vector<float> multiply(const std::vector<float> &vector,
 在本项目中，为了充分利用CPU多核处理的优势，我们将计算任务按照线程数近乎绝对均匀划分，具体就是将稀疏矩阵中所有的非零元素的乘法运算平均地划分到每个线程中，每个线程分到的非零元素个数`n`计算方式如下。
 
 ```math
-n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
+n_id=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id= tnums-1)&\end{cases}
 ```
 
-`nzz`表示矩阵中非零元素的数量，`id`表示线程标识号，`tnums`表示CPU线程个数。以8×8的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
+`nzz`表示矩阵中非零元素的数量，`id`表示线程序号，`tnums`表示CPU线程个数。以 $`8 \times 8`$ 的稀疏矩阵为例，演示基于线程数量的任务划分策略的详细划分过程。下面的矩阵中共有34个非零元素，这意味着CSR存储格式下`values`、`col_index`数组大小是34。
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_54dacbf1539ad161a59c645016124d4f.png)
 
-龙芯3C5000系列处理器右4个线程，$`tnums = 4`$，$`nzz = 34`$ ， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下图的结果，`Thread1`，`Thread2`，`Thread3`，`Thread4`分到 $`34/4=8`$ 个元素，`Thread5`分到 $`34- 8 \times 3 = 10`$ 个元素。
+龙芯3C5000系列处理器有4个线程，也就是 $`tnums = 4`$ ，非零元素个数 $`nzz = 34`$ ， 根据上面公式对各线程中要处理的`values`、`col_index`数组划分，就可以得到下图的结果，`Thread1`，`Thread2`，`Thread3`分到 $`34/4=8`$ 个元素，`Thread4`分到 $`34- 8 \times 3 = 10`$ 个元素。
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_5f6e6405d7341188dd9fde5a1233a440.png)
 
 
 ![](https://markdown.liuchengtu.com/work/uploads/upload_1e610a4a39d636c6eb4563537932f5f6.png)
 
-该划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据处理，该方法显著减少了块间边界数据处理的次数。在该项目边界数据处理次数等于线程数。下面伪代码中可以看出各线程运行结束后，边界元素计算结果保存在中间结果数组`result_mid`中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。
+该划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据处理，该方法显著减少了块间边界数据处理的次数。边界数据处理次数等于线程数。
+接下来介绍如何获取边界元素的信息。线程的左边界的元素在`values`,`col_index`数组里的索引是 $`[0, n, 2*n, ..., (tnums-1)*n ] (n=\frac{nzz}{tnums})`$ ，左边界元素的行索引可以通过对`row_ptr`数组进行二分获得。代码如下
 
 ```cpp
-std::vector<float> multiply(const std::vector<float> &vector,
-                            const MatrixCSR &matrix) {
-    
-    ...
+int binary_search(const std::vector<int> &row_ptr, int num, int end) {
+  int l, r, h, t = 0;
+  l = 0, r = end;
+  while (l <= r) {
+    h = (l + r) >> 1;
+    if (row_ptr[h] >= num) {
+      r = h - 1;
+    } else {
+      l = h + 1;
+      t = h;
+    }
+  }
+  return t;
+}
+```
 
-    #pragma omp parallel
-    {
-    #pragma omp for schedule(static) nowait
+继续以之前提到的 $`8 \times 8`$ 的矩阵为例，其 $`row_ptr=[0, 5, 9, 9, 15, 20, 23, 26, 34]`$ 以及 $`n=8`$ ，我们利用二分法找索引值为8的元素的所在行的演示过程如下图。
+![bis](./pic/bs.png)
+
+
+在各线程运行结束后，边界元素计算结果保存在中间结果数组`result_mid`中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。核心代码如下所示
+
+```cpp
+std::vector<float> multiply4(const std::vector<float> &vector,
+                             const MatrixCSR &matrix) {
+  ...
+
+#pragma omp parallel
+  {
+#pragma omp for schedule(static) nowait
     for (int i = 0; i < thread_nums; ++i) {
-        thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
+      thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
                     values, result, result_mid, vector);
     }
-    }
-    result[0] = result_mid[0];
-    int sub;
-    for (int i = 1; i < thread_nums; ++i) {
+  }
+  result[0] = result_mid[0];
+  int sub;
+  // process the boundary data to get the final result
+  for (int i = 1; i < thread_nums; ++i) {
     sub = i << 1;
     int tmp1 = start[i];
     int tmp2 = end[i - 1];
     if (tmp1 == tmp2) {
-        result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
+      result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
     } else {
-        result[tmp1] += result_mid[sub];
-        result[tmp2] += result_mid[sub - 1];
+      result[tmp1] += result_mid[sub];
+      result[tmp2] += result_mid[sub - 1];
     }
+  }
 
-    ...
+  return result;
 }
  
 ```
-
-为保证程序正确执行，在任务划分的同时需要记录每一组非零向量左右边界元素在原矩阵中的行索引，同时要记录每一组非零元素左边界在`values`数组中的索引，为降低时间复杂度，在本项目中采用二分的思想确定左右边界的行索引信息。
 
 ## 开发中遇到的问题与解决方法
 

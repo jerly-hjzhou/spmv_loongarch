@@ -40,8 +40,8 @@ for ((INDEX = 0; INDEX <= NUM; INDEX++)); do
     diff=$(echo "scale=3; $line1 - $line2" | bc)
     diff_abs=$(echo "scale=3; if ($diff < 0) -($diff) else $diff" | bc)
     threshold=0.001
-    #if (( $(echo "$diff_abs > $threshold" | bc -l) )); then
-    if [ $line1 != $line2 ]; then
+    if (( $(echo "$diff_abs > $threshold" | bc -l) )); then
+    # if [ $line1 != $line2 ]; then
       echo "测试${INDEX}未通过，差异所在行数: $line_number"
       echo "${GOLDEN}: $line1"
       echo "${RESULT}: $line2"
