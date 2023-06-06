@@ -335,7 +335,7 @@ float calculation(const int start, const int end,
                   const std::vector<float> &vector) {
   int len = end - start;
   float res = 0;
-  if ((len) < 8) {
+  if ((len) >= 8) {
     res = spmv_float(len, values.data() + start, &col_index[start],
                      vector.data());
   } else {
