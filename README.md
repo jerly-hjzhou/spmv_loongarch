@@ -16,7 +16,7 @@
 
 ![csr](./pic/csr.png)
 
-CSR(Compressed Sparse Row)格式是存储稀疏矩阵的常用数据结构，如上图所示。相同行的元素用同一种颜色表示，矩阵`A`的元素值按序依次排列在`val`数组中，每个元素对应的列索引按同样的顺序存储在`ind` 数组中。`ptr`数组大小是行数加一，第一个元素存储的是第一行之前所有非零元素的总数，也就是0，第二行存储的是第二行之前所有非零元素的总数，依次类推。
+CSR(Compressed Sparse Row)格式是存储稀疏矩阵的常用数据结构，如上图所示。相同行的元素用同一种颜色表示，矩阵`A`的元素值按序依次排列在`val`数组中，每个元素对应的列索引按同样的顺序存储在`ind` 数组中。`ptr`数组大小是行数加一，数组第一个元素存储的是矩阵第一行之前（不包括第一行）所有非零元素的总数，也就是0，数组第二个元素存储的是矩阵第二行之前（不包括第二行）所有非零元素的总数，以此类推。
 
 基于CSR格式的常规SPMV算法实现如下伪代码所示
 ```
@@ -30,7 +30,7 @@ for (i = 0; i < m; ++i) {
 
 这种实现中`x`的值是间接访问的，因而其空间局部性较差。
 
-## 仓库内容简介
+## 仓库文件简介
 * **Accuracy/**: 该文件夹保存测试SPMV计算准确性的数据文件，前缀是`matrix`的文件存储的是稀疏矩阵，其格式为：第一行记录的是矩阵行数，矩阵列数，非零元素个数。接下来的每一行记录的是元素的行索引，元素的列索引，元素值。矩阵的行列索引都从0开始。 
 * **eigen.cpp**: 使用线性代数计算库`Eigen`进行稀疏矩阵运算，作为标准的计算结果来验证自己开发的算子的正确性。
 * **env.hpp**: 用于支持程序使用环境变量控制需要的逻辑，比如根据环境变量选择是否要程序打印调试信息。这有助于我们调试代码。
@@ -50,7 +50,6 @@ for (i = 0; i < m; ++i) {
 本项目的`eigen.cpp`使用了`Eigen`库，按照如下流程按照到计算机上，同时我们使用的机器架构为`loongarch64`。
 ```
 wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz # 下载源代码
-
 tar -zxvf eigen-3.4.0.tar.gz #解压
 cd eigen-3.4.0
 mkdir build && cd build
@@ -292,3 +291,6 @@ std::vector<float> multiply(const std::vector<float> &vector,
 **spmv计算错误**
 
 汇编写的spmv函数计算出现错误结果，通过gdb调试发现是加载数据的偏移位置不对。
+
+## 文献调研
+1. Williams S, Oliker L, Vuduc R, et al. Optimization of sparse matrix-vector multiplication on emerging multicore platforms[C]//Proceedings of the 2007 ACM/IEEE Conference on Supercomputing. 2007: 1-12.
