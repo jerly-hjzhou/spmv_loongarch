@@ -6,8 +6,7 @@
 #include <vector>
 
 extern "C" double spmv_double(const std::size_t len, const double *values,
-                                const std::size_t *col_index,
-                                const double *vec);
+                              const std::size_t *col_index, const double *vec);
 
 namespace spmv {
 class Triplet {
@@ -208,7 +207,7 @@ std::vector<double> multiply2(const std::vector<double> &vector,
     auto end = row_ptr[i + 1];
     auto len = end - start;
     result[i] = spmv_double(len, values.data() + start,
-                              col_index.data() + start, vector.data());
+                            col_index.data() + start, vector.data());
   }
   return result;
 }
@@ -237,28 +236,28 @@ std::vector<double> multiply3(const std::vector<double> &vector,
 }
 
 // // multi-thread OpenMP+vec version
-std::vector<double> multiply4(const std::vector<double> &vector,
-                              const MatrixCSR &matrix) {
-  std::size_t rows = matrix.getRows();
-  std::size_t cols = matrix.getCols();
-  const std::vector<std::size_t> &row_ptr = matrix.getRowPtr();
-  const std::vector<std::size_t> &col_index = matrix.getColIndex();
-  const std::vector<double> &values = matrix.getValues();
-  if (cols != vector.size()) {
-    std::cerr << "Matrix and vector dimensions do not match." << std::endl;
-    abort();
-  }
-  std::vector<double> result(rows, 0.0);
-#pragma omp parallel for
-  for (auto i = 0; i < rows; i++) {
-    auto start = row_ptr[i];
-    auto end = row_ptr[i + 1];
-    auto len = end - start;
-    result[i] = spmv_double(len, values.data() + start,
-                              col_index.data() + start, vector.data());
-  }
-  return result;
-}
+// std::vector<double> multiply4(const std::vector<double> &vector,
+//                               const MatrixCSR &matrix) {
+//   std::size_t rows = matrix.getRows();
+//   std::size_t cols = matrix.getCols();
+//   const std::vector<std::size_t> &row_ptr = matrix.getRowPtr();
+//   const std::vector<std::size_t> &col_index = matrix.getColIndex();
+//   const std::vector<double> &values = matrix.getValues();
+//   if (cols != vector.size()) {
+//     std::cerr << "Matrix and vector dimensions do not match." << std::endl;
+//     abort();
+//   }
+//   std::vector<double> result(rows, 0.0);
+// #pragma omp parallel for
+//   for (auto i = 0; i < rows; i++) {
+//     auto start = row_ptr[i];
+//     auto end = row_ptr[i + 1];
+//     auto len = end - start;
+//     result[i] = spmv_double(len, values.data() + start,
+//                               col_index.data() + start, vector.data());
+//   }
+//   return result;
+// }
 
 // albus balance
 std::size_t binary_search(const std::vector<std::size_t> &row_ptr,
@@ -301,13 +300,13 @@ void albus_balance(const MatrixCSR &matrix, std::vector<std::size_t> &start,
   }
 }
 
-void thread_block(std::size_t thread_id, std::size_t start, std::size_t end,
-                  std::size_t start2, std::size_t end2,
-                  const std::vector<std::size_t> &row_ptr,
-                  const std::vector<std::size_t> &col_index,
-                  const std::vector<double> &values,
-                  std::vector<double> &mtx_ans, std::vector<double> &mid_ans,
-                  const std::vector<double> &vector) {
+void thread_block1(std::size_t thread_id, std::size_t start, std::size_t end,
+                   std::size_t start2, std::size_t end2,
+                   const std::vector<std::size_t> &row_ptr,
+                   const std::vector<std::size_t> &col_index,
+                   const std::vector<double> &values,
+                   std::vector<double> &mtx_ans, std::vector<double> &mid_ans,
+                   const std::vector<double> &vector) {
 
   std::size_t start1, end1, num, Thread, i, j;
   double sum;
@@ -365,13 +364,13 @@ void thread_block(std::size_t thread_id, std::size_t start, std::size_t end,
   }
 }
 
-void thread_block(std::size_t thread_id, std::size_t start, std::size_t end,
-                  std::size_t start2, std::size_t end2,
-                  const std::vector<std::size_t> &row_ptr,
-                  const std::vector<std::size_t> &col_index,
-                  const std::vector<double> &values,
-                  std::vector<double> &mtx_ans, std::vector<double> &mid_ans,
-                  const std::vector<double> &vector) {
+void thread_block2(std::size_t thread_id, std::size_t start, std::size_t end,
+                   std::size_t start2, std::size_t end2,
+                   const std::vector<std::size_t> &row_ptr,
+                   const std::vector<std::size_t> &col_index,
+                   const std::vector<double> &values,
+                   std::vector<double> &mtx_ans, std::vector<double> &mid_ans,
+                   const std::vector<double> &vector) {
 
   std::size_t start1, end1, num, Thread, i;
   double sum;
@@ -391,8 +390,7 @@ void thread_block(std::size_t thread_id, std::size_t start, std::size_t end,
     for (i = start; i < end; ++i) {
       end1 = row_ptr[i + 1];
       num = end1 - start1;
-      sum = spmv_double(num, values.data() + start1, col_index.data() +
-      start1,
+      sum = spmv_double(num, values.data() + start1, col_index.data() + start1,
                         vector.data());
       mtx_ans[i] = sum;
       start1 = end1;
@@ -400,8 +398,7 @@ void thread_block(std::size_t thread_id, std::size_t start, std::size_t end,
     start1 = row_ptr[end];
     end1 = start1 + end2;
     mid_ans[Thread | 1] = spmv_double(end2, values.data() + start1,
-                                      col_index.data() + start1,
-                                      vector.data());
+                                      col_index.data() + start1, vector.data());
     return;
   }
   default: {
@@ -418,6 +415,62 @@ void thread_block(std::size_t thread_id, std::size_t start, std::size_t end,
 }
 
 // multi-thread OpenMP  && ALBUS version
+std::vector<double> multiply4(const std::vector<double> &vector,
+                              const MatrixCSR &matrix) {
+  std::size_t cols = matrix.getCols();
+  std::size_t rows = matrix.getRows();
+  std::size_t nonzeronums = matrix.getNonzeros();
+
+  std::size_t thread_nums = std::thread::hardware_concurrency();
+
+  const std::vector<std::size_t> &row_ptr = matrix.getRowPtr();
+  const std::vector<std::size_t> &col_index = matrix.getColIndex();
+  const std::vector<double> &values = matrix.getValues();
+  if (cols != vector.size()) {
+    std::cerr << "Matrix and vector dimensions do not match." << std::endl;
+    abort();
+  }
+  // mid_ans final_ans
+  std::vector<double> result(rows + 1, 0.0);
+  std::vector<double> result_mid(thread_nums * 2, 0.0);
+  // store left boundary row index of every thread
+  std::vector<std::size_t> start(thread_nums, 0);
+  // store right boundary row index of every thread
+  std::vector<std::size_t> end(thread_nums, 0);
+  // store the count of values in row start[thread_id]
+  std::vector<std::size_t> start1(thread_nums, 0);
+  // store the count of values in row end[thread_id]
+  std::vector<std::size_t> end1(thread_nums, 0);
+
+  albus_balance(matrix, start, end, start1, end1, result_mid, thread_nums);
+
+  std::size_t i;
+#pragma omp parallel private(i)
+  {
+#pragma omp for schedule(static) nowait
+    for (i = 0; i < thread_nums; ++i) {
+      thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
+                    values, result, result_mid, vector);
+    }
+  }
+  result[0] = result_mid[0];
+  std::size_t sub;
+  //  #pragma unroll(32)
+  for (std::size_t i = 1; i < thread_nums; ++i) {
+    sub = i << 1;
+    std::size_t tmp1 = start[i];
+    std::size_t tmp2 = end[i - 1];
+    if (tmp1 == tmp2) {
+      result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
+    } else {
+      result[tmp1] += result_mid[sub];
+      result[tmp2] += result_mid[sub - 1];
+    }
+  }
+  return result;
+}
+
+// ALBUS+SIMD
 std::vector<double> multiply5(const std::vector<double> &vector,
                               const MatrixCSR &matrix) {
   std::size_t cols = matrix.getCols();
@@ -452,8 +505,8 @@ std::vector<double> multiply5(const std::vector<double> &vector,
   {
 #pragma omp for schedule(static) nowait
     for (i = 0; i < thread_nums; ++i) {
-      thread_block(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
-                   values, result, result_mid, vector);
+      thread_block2(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
+                    values, result, result_mid, vector);
     }
   }
   result[0] = result_mid[0];
@@ -473,28 +526,5 @@ std::vector<double> multiply5(const std::vector<double> &vector,
   return result;
 }
 
-std::vector<double> multiply6(const std::vector<double> &vector,
-                             const MatrixCSR &matrix) {
-  std::size_t cols = matrix.getCols();
-  std::size_t rows = matrix.getRows();
-  const std::vector<std::size_t> &row_ptr = matrix.getRowPtr();
-  const std::vector<std::size_t> &col_index = matrix.getColIndex();
-  const std::vector<double> &values = matrix.getValues();
-  
-  if (cols != vector.size()) {
-    std::cerr << "Matrix and vector dimensions do not match." << std::endl;
-    abort();
-  }
-
-  std::vector<double> result(rows);
-
-  for (auto i = 0; i < rows; i++) {
-    for (auto j = row_ptr[i]; j < row_ptr[i + 1]; j++) {
-      result[i] += values[j] * vector[col_index[j]];
-    }
-  }
-
-  return result;
-}
-
 } // namespace spmv
+
