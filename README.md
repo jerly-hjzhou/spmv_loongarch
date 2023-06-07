@@ -74,7 +74,7 @@
 3. 项目提供易用的测试脚本与说明，初赛阶段项目开发进入收尾阶段
 
 * [02_preResearch_part3.md](records/dev_docs/02_deepResearch_part3.md)  
-*[02_preResearch_part4.md](records/dev_docs/02_deepResearch_part4.md)
+* [02_preResearch_part4.md](records/dev_docs/02_deepResearch_part4.md)
 
 ## 仓库文件简介
 ```
