@@ -3,191 +3,37 @@
 本阶段分析使用SIMD优化实现基于龙芯向量指令集的double、float类型的数据spmv，并进行性能测试，发现性能测试得到的结果很不稳定，有时候比naive方法快，有时候比naive方法慢很多，并且navie算法比eigen慢很多，尝试定位原因，发现是参数值传递带来的性能损失；最后为了充分利用3C5000CPU资源，尝试多线程加速
 
 ## 针对float数据的SIMD优化
+
+### 问题定位
+
+* 问题描述： 我们小组实现了基于SIMD的SPMV，测试发现时间消耗并没有很好的提升，开始尝试定位问题。
+在项目开发过程中，spmv关键计算步骤中获取vector向量中的元素是需要实现随机存取的，它不像values数组中的数据，一次访存就可以取到好几个有效数据，查阅指令集没有找到可进行随机存取的向量指令，也就是说没有办法减少vector数组的访问次数，于是我们想办法从减少指令条数上来下文章。
+* 解决方法：我们发现col_index数组保存的是vector对应的索引值，需要乘以类型对应的字节数才是正确的地址偏移量，所以我们选择针对左移运算，获取col_index数组有效值的操作采用SIMD实现，优化后的代码如下
 ```
-        .text
-        .align 2
-        .globl spmv_float
-    .type spmv_float, @function
-spmv_float:
-    fsub.d      $f0,    $f0,    $f0
-        srli.d          $t1,    $a0,    3
-        andi            $t0,    $a0,    0x07
-        addi.d          $t3,    $zero,  4
-.LOOP_MULX:
-        beq                 $t1,        $zero,  .RES_MULX
-        xvld            $xr1,   $a1,    0
-        addi.d          $a1,    $a1,    32
-        xvpermi.q       $xr4,   $xr1,   1
-        xvld        $xr2,   $a2,    0
-        addi.d          $a2,    $a2,    32
         xvsllwil.du.wu                  $xr9,   $xr2,   2
-    xvpermi.d                           $xr2,   $xr2,   0xb1
+        xvpermi.d                       $xr2,   $xr2,   0xb1
         xvsllwil.du.wu                  $xr10,  $xr2,   2
         xvpickve2gr.du                  $t2,    $xr9,   0
-    fldx.s                  $f3,   $a3,    $t2
-        xvpickve2gr.du              $t2,    $xr9,   1
-    fldx.s                          $f6,    $a3,        $t2
-        xvinsve0.w              $xr3,   $xr6,   1
-        xvpickve2gr.du          $t2,    $xr10,  0
-    fldx.s                      $f6,    $a3,    $t2
-        xvinsve0.w              $xr3,   $xr6,   2
-        xvpickve2gr.du                  $t2,    $xr10,  1
-        fldx.s                      $f6,    $a3,        $t2
-        xvinsve0.w              $xr3,   $xr6,   3
-    vfmul.s                 $vr3,   $vr1,   $vr3
-    xvpickve2gr.du          $t2,    $xr9,   2
-        fldx.s                  $f7,   $a3,    $t2
-        xvpickve2gr.du              $t2,    $xr9,   3
-    fldx.s                          $f8,    $a3,        $t2
-        xvinsve0.w              $xr7,   $xr8,   1
-        xvpickve2gr.du                  $t2,    $xr10,  2
-    fldx.s                          $f8,    $a3,        $t2
-        xvinsve0.w              $xr7,   $xr8,   2
-        xvpickve2gr.du                  $t2,    $xr10,   3
-        fldx.s                      $f8,    $a3,        $t2
-        xvinsve0.w              $xr7,   $xr8,   3
-    vfmadd.s        $vr3,   $vr7,   $vr4,   $vr3
-        fadd.s          $f0,    $f0,    $f3
-        xvpickve.w      $xr5,   $xr3,   1
-        fadd.s          $f0,    $f0,    $f5
-        xvpickve.w      $xr5,   $xr3,   2
-        fadd.s          $f0,    $f0,    $f5
-        xvpickve.w      $xr5,   $xr3,   3
-        fadd.s          $f0,    $f0,    $f5
-        addi.d          $t1,     $t1,     -1
-        b               .LOOP_MULX
-.RES_MULX:
-        xvld            $xr1,   $a1,    0
-        xvld        $xr2,   $a2,    0
-        xvpermi.q       $xr4,   $xr1,   1
-        xvsllwil.du.wu                  $xr9,   $xr2,   2
-    xvpermi.d                           $xr2,   $xr2,   0xb1
-        xvsllwil.du.wu                  $xr10,  $xr2,   2
-        blt                     $t0,    $t3,    .MULX_LESS4_1
-        xvpickve2gr.du                  $t2,    $xr9,   0
-    fldx.s                  $f3,   $a3,    $t2
-        xvpickve2gr.du              $t2,    $xr9,   1
-    fldx.s                          $f6,    $a3,        $t2
-        xvinsve0.w              $xr3,   $xr6,   1
-        vfmul.s                                 $vr3,   $vr1,   $vr3
+        fldx.s                          $f3,   $a3,    $t2
+        xvpickve2gr.du                  $t2,    $xr9,   1
+        fldx.s                          $f6,    $a3,        $t2
+        xvinsve0.w                      $xr3,   $xr6,   1
         xvpickve2gr.du                  $t2,    $xr10,  0
-    fldx.s                              $f6,    $a3,    $t2
+        fldx.s                          $f6,    $a3,    $t2
+        xvinsve0.w                      $xr3,   $xr6,   2
         xvpickve2gr.du                  $t2,    $xr10,  1
-        fldx.s                      $f7,    $a3,        $t2
-        xvinsve0.w              $xr6,   $xr7,   1
-        vpermi.w                                $vr1,   $vr1,   0x0e
-        vfmadd.s                                $vr3,   $vr6,   $vr1,   $vr3
-        fadd.s          $f0,    $f0,    $f3
-        xvpickve.w      $xr5,   $xr3,   1
-        fadd.s          $f0,    $f0,    $f5
-        addi.d                  $t0,    $t0,    -4
-        b                               .MULX_LESS4_2
-.MULX_LESS4_1:
-        beq                 $t0,        $zero,  .END
-        xvpickve2gr.du                  $t2,    $xr9,   0
-    fldx.s                  $f3,   $a3,    $t2
-        fmadd.s                                 $f0,    $f3,    $f1,    $f0
-        addi.d                                  $t0,    $t0,    -1
-        beq                 $t0,        $zero,  .END
-        xvpickve2gr.du              $t2,    $xr9,   1
-    fldx.s                          $f3,    $a3,        $t2
-        vpermi.w                                $vr1,   $vr1,   0x39
-        fmadd.s                                 $f0,    $f3,    $f1,    $f0
-        addi.d                                  $t0,    $t0,    -1
-        beq                 $t0,        $zero,  .END
-        xvpickve2gr.du                  $t2,    $xr10,  0
-    fldx.s                              $f3,    $a3,    $t2
-        vpermi.w                                $vr1,   $vr1,   0x39
-        fmadd.s                                 $f0,    $f3,    $f1,    $f0
-        addi.d              $t0,        $t0,    -1
-        beq                 $t0,        $zero,  .END
-.MULX_LESS4_2:
-        beq                 $t0,        $zero,  .END
-        xvpickve2gr.du              $t2,    $xr9,   2
-        fldx.s                  $f7,   $a3,    $t2
-        fmadd.s                                 $f0,    $f7,    $f4,    $f0
-        addi.d                                  $t0,    $t0,    -1
-        beq                 $t0,        $zero,  .END
-        xvpickve2gr.du              $t2,    $xr9,   3
-    fldx.s                          $f3,    $a3,        $t2
-        vpermi.w                                $vr4,   $vr4,   0x39
-        fmadd.s                                 $f0,    $f3,    $f4,    $f0
-        addi.d                                  $t0,    $t0,    -1
-        beq                 $t0,        $zero,  .END
-        xvpickve2gr.du                  $t2,    $xr10,  2
-    fldx.s                              $f3,    $a3,    $t2
-        vpermi.w                                $vr4,   $vr4,   0x39
-        fmadd.s                                 $f0,    $f3,    $f4,    $f0
-        beq                 $t0,        $zero,  .END
-.END:
-        jr $ra
-```
-
-## 针对double数据的SIMD优化
-```
-        .text
-        .align 2
-        .globl spmv_loongson
-        .type spmv_loongson, @function
-
-spmv_loongson:
-        fsub.d      $f0,    $f0,    $f0
-        beq             $a0,    $zero,  .END
-        srli.d          $t1,    $a0,    2
-        andi            $t0,    $a0,    0x03
-
-.LOOP_MULX:
-        beq                     $t1,    $zero,  .REST_MULX
-        xvld            $xr1,   $a1,    0
-        addi.d          $a1,    $a1,    32
-        xvld        $xr2,   $a2,    0
-        addi.d          $a2,    $a2,    32
-        b           .LOAD_VEC
-.RET_LOOP:
-        xvfmul.d        $xr4,   $xr1,   $xr3
-        fadd.d          $f0,    $f0,    $f4
-        xvpickve.d      $xr5,   $xr4,   1
-        fadd.d          $f0,    $f0,    $f5
-        xvpickve.d      $xr5,   $xr4,   2
-        fadd.d          $f0,    $f0,    $f5
-        xvpickve.d      $xr5,   $xr4,   3
-        fadd.d          $f0,    $f0,    $f5
-        addi.d          $t1,     $t1,   -1
-        b               .LOOP_MULX
-
-.REST_MULX:
-        beq                     $t0,    $zero,  .END
-        fld.d       $f1,    $a1,    0
-        addi.d      $a1,    $a1,    8
-        ld.d            $t2,    $a2,    0
-        addi.d          $a2,    $a2,    8
-        slli.d      $t2,        $t2,    3
-        fldx.d          $f6,    $a3,    $t2
-        fmul.d      $f7,    $f6,    $f1
-        fadd.d      $f0,    $f0,    $f7
-        addi.d          $t0,    $t0,    -1
-        b           .REST_MULX
-
-.END:
-        jr $ra
-
-.LOAD_VEC:
-        xvslli.d                        $xr2,   $xr2,   3
-        xvpickve2gr.du          $t2,    $xr2,   0
-        fldx.d                      $f6,    $a3,    $t2
-        xvinsve0.d          $xr3,   $xr6,   0
-        xvpickve2gr.du          $t2,    $xr2,   1
-        fldx.d                      $f6,    $a3,    $t2
-        xvinsve0.d          $xr3,   $xr6,   1
-        xvpickve2gr.du          $t2,    $xr2,   2
-        fldx.d                  $f6,    $a3,    $t2
-        xvinsve0.d          $xr3,   $xr6,   2
-        xvpickve2gr.du          $t2,    $xr2,   3
-        fldx.d                      $f6,    $a3,    $t2
-        xvinsve0.d          $xr3,   $xr6,   3
-        b                                       .RET_LOOP
+        fldx.s                          $f6,    $a3,        $t2
+        xvinsve0.w                      $xr3,   $xr6,   3
+        vfmul.s                         $vr3,   $vr1,   $vr3
+        xvpickve2gr.du                  $t2,    $xr9,   2
+        fldx.s                          $f7,   $a3,    $t2
+        xvpickve2gr.du                  $t2,    $xr9,   3
+        fldx.s                          $f8,    $a3,    $t2
 
 ```
+上面的汇编代码实现了将col_index数组中8个int索引值取到寄存器xr2，之后进行扩展后左移，结果分别保存在寄存器xr9和xr10中，这个是vector数组对应的地址偏移量，用于获取对应有效值
+
+
 
 ## OpenMP多线程加速
 

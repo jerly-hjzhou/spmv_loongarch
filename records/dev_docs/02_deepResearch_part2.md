@@ -58,23 +58,9 @@ Algorithm performs correctly!
 
 ```
 
-## SPMV串行循环实现
-```cpp
-// naive version
-std::vector<float> multiply(const std::vector<float> &vector,
-                            const MatrixCSR &matrix) {
-...
-  for (auto i = 0; i < rows; i++) {
-    for (auto j = row_ptr[i]; j < row_ptr[i + 1]; j++) {
-      result[i] += values[j] * vector[col_index[j]];
-    }
-  }
-...
-}
 
-```
 
-## SIMD加速
+## 基于SIMD实现rule函数加速
 将for循环实现的数组元素relu函数用汇编实现，使用向量指令集一次性访问多个数据，减少数据的缓存数量，并用搭建好的测试框架测试SIMD的加速比。
 ### 代码实现
 ```
