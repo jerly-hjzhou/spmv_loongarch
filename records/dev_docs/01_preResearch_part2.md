@@ -28,13 +28,15 @@ g++ -o envtest test.cpp
 程序能够顺利执行，至此认为环境搭建成功。为了防止在开发过程中误删系统文件，后续开发仍然切换到普通用户下进行。
 
 ## 基于loongson Arch 汇编指令学习
-参考资料：https://github.com/loongson/LoongArch-Documentation/releases/latest/download/LoongArch-Vol1-v1.02-CN.pdf
+* 购买专业书籍 《汇编语言编程基础 基于LoongsonArch》并阅读
+* 参考资料：https://github.com/loongson/LoongArch-Documentation/releases/latest/download/LoongArch-Vol1-v1.02-CN.pdf
 我们队伍针对提供的技术文档，总结常用的指令使用说明，总结内容在该链接下：https://spmv.yuque.com/org-wiki-spmv-bw43uy/bgtx7o/es0etw8w24zr0w47?singleDoc# 《龙芯架构指令集》
 该链接中部分内容如下：
 |指令| 类型| 使用说明|
 |---|---|---|
 |srli.d $rd,  $rj, ui6	|移位|将通用寄存器rj中[63:0]位数据逻辑右移{ui6}位，移位结果写入通用寄存器rd中|
 |fld.d $fd,  $rj,  si12	|访存|从内存（$rj + 12位符号扩展立即数）取回一个8B的数据写入浮点寄存器fd。
+
 ## 实现基于汇编的加法运算
 ### 代码
 ```
