@@ -1,4 +1,4 @@
-#include "spmv.hpp"
+#include "spmv_double.hpp"
 #include <algorithm>
 #include <iomanip>
 
@@ -23,11 +23,11 @@ int main(int argc, char *argv[]) {
   __TOC__(READ_MATRIX)
 
   __TIC__(READ_VECTOR)
-  std::vector<float> vector = spmv::readVectorFromFile(vectorFile);
+  std::vector<double> vector = spmv::readVectorFromFile(vectorFile);
   __TOC__(READ_VECTOR)
 
   __TIC__(OP)
-  std::vector<float> result = spmv::multiply4(vector, matrix);
+  std::vector<double> result = spmv::multiply(vector, matrix);
   __TOC__(OP)
   __TOC__(TOTAL)
 

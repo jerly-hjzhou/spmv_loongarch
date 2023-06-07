@@ -1,4 +1,4 @@
-#include "spmv.hpp"
+#include "spmv_float.hpp"
 #include <algorithm>
 #include <iomanip>
 
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
   __TOC__(READ_VECTOR)
 
   __TIC__(OP)
-  std::vector<float> result = spmv::multiply(vector, matrix);
+  std::vector<float> result = spmv::multiply5(vector, matrix);
   __TOC__(OP)
   __TOC__(TOTAL)
 
