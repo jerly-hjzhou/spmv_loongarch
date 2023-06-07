@@ -92,19 +92,73 @@ for (i = 0; i < m; ++i) {
 这种实现中`x`的值是间接访问的，因而其空间局部性较差。
 
 ## 仓库文件简介
-* **Accuracy/**: 该文件夹保存测试SPMV计算准确性的数据文件，前缀是`matrix`的文件存储的是稀疏矩阵，其格式为：第一行记录的是矩阵行数，矩阵列数，非零元素个数。接下来的每一行记录的是元素的行索引，元素的列索引，元素值。矩阵的行列索引都从0开始。 
-* **eigen.cpp**: 使用线性代数计算库`Eigen`进行稀疏矩阵运算，作为标准的计算结果来验证自己开发的算子的正确性。
-* **env.hpp**: 用于支持程序使用环境变量控制需要的逻辑，比如根据环境变量选择是否要程序打印调试信息。这有助于我们调试代码。
-* **profiling.hpp**: 用于支持查看程序中某段代码的耗时，这有助于我们分析、优化程序性能。
-* **spmv.hpp**: 支持CSR格式的稀疏矩阵向量乘运算
-* **spmv.cpp**: 使用常规的基于CSR格式的SPMV运算
-* **spmv2.cpp**: 使用了SIMD指令的SPMV运算
-* **spmv3.cpp**: 无人工处理对稀疏矩阵乘进行多线程加速的SPMV运算
-* **spmv4.cpp**: 使用了负载均衡的SPMV运算
-* **spmv5.cpp**: 使用了负载均衡和SIMD的SPMV运算
-* **spmv_float.S**: 使用龙芯架构的向量指令集开发的SPMV
-* **test_accuracy.sh**: 该脚本功能是测试开发的程序是否计算正确
-* **test_performace.sh**: 该脚本功能是评估算法相对原始的SPMV的加速比
+```
+├── accuracy               // 该文件夹保存测试SPMV计算准确性的数据文件
+│   ├── matrix00.txt      // 前缀是`matrix`的文件存储的是稀疏矩阵
+│   ├── matrix01.txt    
+│   ├── matrix02.txt
+│   ├── matrix03.txt
+│   ├── matrix04.txt
+│   ├── matrix05.txt
+│   ├── matrix06.txt
+│   ├── matrix07.txt
+│   ├── matrix08.txt
+│   ├── matrix09.txt
+│   ├── matrix10.txt
+│   ├── vec00.txt      // 前缀`vec`的文件存储的是向量
+│   ├── vec01.txt
+│   ├── vec02.txt
+│   ├── vec03.txt
+│   ├── vec04.txt
+│   ├── vec05.txt
+│   ├── vec06.txt
+│   ├── vec07.txt
+│   ├── vec08.txt
+│   ├── vec09.txt
+│   └── vec10.txt
+├── include           // 该文件夹保存SPMV项目用到的头文件
+│   ├── env.hpp       // 用于支持程序使用环境变量控制需要的逻辑
+│   ├── profiling.hpp // 用于支持查看程序中某段代码的耗时
+│   └── spmv.hpp      // 支持CSR格式的稀疏矩阵向量乘运算
+├── Makefile
+├── pic               // 该文件夹保存文档中使用的图片
+│   ├── acc_usage.gif
+│   ├── bs.png
+│   ├── csr.png
+│   ├── exec.PNG
+│   ├── matrix.png
+│   ├── perf_usage.gif
+│   └── speed.PNG
+├── README.md        // 项目使用说明与技术文档
+├── records         // 该文件夹保存项目开发过程中的文档记录、工作日志
+│   └── dev_docs
+│       ├── 00_prepare.md
+│       ├── 01_preResearch_part1.md
+│       ├── 01_preResearch_part2.md
+│       ├── 02_deepResearch_part1.md
+│       ├── 02_deepResearch_part2.md
+│       ├── 02_deepResearch_part3.md
+│       └── 02_deepResearch_part4.md
+├── src                 // 文件夹保存SPMV计算各种实现方式对应的源文件
+│   └── float      // 该文件夹保存基于float的SPMV
+│   │   ├── eigen.cpp   // 使用线性代数计算库`Eigen`进行稀疏矩阵运算
+│   │   ├── spmv2.cpp   // 使用了SIMD指令的SPMV运算
+│   │   ├── spmv3.cpp   // 无人工处理对稀疏矩阵乘进行多线程加速的SPMV运算
+│   │   ├── spmv4.cpp   // 使用了负载均衡的SPMV运算
+│   │   ├── spmv5.cpp   // 使用了负载均衡和SIMD的SPMV运算
+│   │   ├── spmv.cpp    // 使用常规的基于CSR格式的SPMV运算
+│   │   └── spmv_float.S  // 使用龙芯架构的向量指令集开发的SPMV，支持float类型
+│   └── double      // 该文件夹保存基于double的SPMV
+│       ├── eigen.cpp   // 使用线性代数计算库`Eigen`进行稀疏矩阵运算
+│       ├── spmv2.cpp   // 使用了SIMD指令的SPMV运算
+│       ├── spmv3.cpp   // 无人工处理对稀疏矩阵乘进行多线程加速的SPMV运算
+│       ├── spmv4.cpp   // 使用了负载均衡的SPMV运算
+│       ├── spmv5.cpp   // 使用了负载均衡和SIMD的SPMV运算
+│       ├── spmv.cpp    // 使用常规的基于CSR格式的SPMV运算
+│       └── spmv_double.S  // 使用龙芯架构的向量指令集开发的SPMV，支持double类型
+├── test_accuracy.sh      // 该脚本功能是测试开发的程序是否计算正确
+└── test_performance.sh   // 该脚本功能是评估算法相对原始的SPMV的加速比
+```
 
 ## 测试框架介绍与使用
 ### 环境搭建
