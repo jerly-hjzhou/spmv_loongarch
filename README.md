@@ -117,11 +117,6 @@ for (i = 0; i < m; ++i) {
 │   ├── vec09.txt
 │   └── vec10.txt
 │
-├── include           // 该文件夹保存SPMV项目用到的头文件
-│   ├── env.hpp       // 用于支持程序使用环境变量控制需要的逻辑
-│   ├── profiling.hpp // 用于支持查看程序中某段代码的耗时
-│   └── spmv.hpp      // 支持CSR格式的稀疏矩阵向量乘运算
-│
 ├── pic               // 该文件夹保存文档中使用的图片
 │   ├── acc_usage.gif
 │   ├── bs.png
