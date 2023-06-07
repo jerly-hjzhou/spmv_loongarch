@@ -1,4 +1,5 @@
 dataset/
+.vscode/
 output/
 *.log
 eigen
