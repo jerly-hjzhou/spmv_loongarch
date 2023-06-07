@@ -116,11 +116,12 @@ for (i = 0; i < m; ++i) {
 │   ├── vec08.txt
 │   ├── vec09.txt
 │   └── vec10.txt
+│
 ├── include           // 该文件夹保存SPMV项目用到的头文件
 │   ├── env.hpp       // 用于支持程序使用环境变量控制需要的逻辑
 │   ├── profiling.hpp // 用于支持查看程序中某段代码的耗时
 │   └── spmv.hpp      // 支持CSR格式的稀疏矩阵向量乘运算
-├── Makefile
+│
 ├── pic               // 该文件夹保存文档中使用的图片
 │   ├── acc_usage.gif
 │   ├── bs.png
@@ -129,7 +130,9 @@ for (i = 0; i < m; ++i) {
 │   ├── matrix.png
 │   ├── perf_usage.gif
 │   └── speed.PNG
+│
 ├── README.md        // 项目使用说明与技术文档
+│
 ├── records         // 该文件夹保存项目开发过程中的文档记录、工作日志
 │   └── dev_docs
 │       ├── 00_prepare.md
@@ -139,6 +142,7 @@ for (i = 0; i < m; ++i) {
 │       ├── 02_deepResearch_part2.md
 │       ├── 02_deepResearch_part3.md
 │       └── 02_deepResearch_part4.md
+│
 ├── src                 // 文件夹保存SPMV计算各种实现方式对应的源文件
 │   └── float      // 该文件夹保存基于float的SPMV
 │   │   ├── eigen.cpp   // 使用线性代数计算库`Eigen`进行稀疏矩阵运算
@@ -147,7 +151,13 @@ for (i = 0; i < m; ++i) {
 │   │   ├── spmv4.cpp   // 使用了负载均衡的SPMV运算
 │   │   ├── spmv5.cpp   // 使用了负载均衡和SIMD的SPMV运算
 │   │   ├── spmv.cpp    // 使用常规的基于CSR格式的SPMV运算
-│   │   └── spmv_float.S  // 使用龙芯架构的向量指令集开发的SPMV，支持float类型
+│   │   ├── spmv_float.S  // 使用龙芯架构的向量指令集开发的SPMV，支持float类型
+│   │   ├── Makefile
+│   │   └── include           // 该文件夹保存SPMV项目用到的头文件
+│   │        ├── env.hpp       // 用于支持程序使用环境变量控制需要的逻辑
+│   │        ├── profiling.hpp // 用于支持查看程序中某段代码的耗时
+│   │        └── spmv.hpp      // 支持CSR格式的稀疏矩阵向量乘运算
+│   │  
 │   └── double      // 该文件夹保存基于double的SPMV
 │       ├── eigen.cpp   // 使用线性代数计算库`Eigen`进行稀疏矩阵运算
 │       ├── spmv2.cpp   // 使用了SIMD指令的SPMV运算
@@ -155,7 +165,13 @@ for (i = 0; i < m; ++i) {
 │       ├── spmv4.cpp   // 使用了负载均衡的SPMV运算
 │       ├── spmv5.cpp   // 使用了负载均衡和SIMD的SPMV运算
 │       ├── spmv.cpp    // 使用常规的基于CSR格式的SPMV运算
-│       └── spmv_double.S  // 使用龙芯架构的向量指令集开发的SPMV，支持double类型
+│       ├── spmv_double.S  // 使用龙芯架构的向量指令集开发的SPMV，支持double类型
+│       ├── Makefile
+│       └── include           // 该文件夹保存SPMV项目用到的头文件
+│            ├── env.hpp       // 用于支持程序使用环境变量控制需要的逻辑
+│            ├── profiling.hpp // 用于支持查看程序中某段代码的耗时
+│            └── spmv.hpp      // 支持CSR格式的稀疏矩阵向量乘运算
+│   
 ├── test_accuracy.sh      // 该脚本功能是测试开发的程序是否计算正确
 └── test_performance.sh   // 该脚本功能是评估算法相对原始的SPMV的加速比
 ```
