@@ -56,7 +56,7 @@
 1. 搭建性能测试框架，实现性能测试自动化
 2. 实现COO、CSR格式文件数据读取与格式转换
 3. 实现基本SPMV、移植Eigen库并应用到SPMV计算中
-[01_preResearch_part2.md](records/dev_docs/01_preResearch_part2.md)
+* [01_preResearch_part2.md](records/dev_docs/01_preResearch_part2.md)
 
 ### 第三阶段
 1. 成功使用基于LA64架构的向量指令集的SIMD优化
