@@ -108,7 +108,7 @@ for (i = 0; i < m; ++i) {
 
 ## 测试框架介绍与使用
 ### 环境搭建
-本项目的`eigen.cpp`使用了`Eigen`库，按照如下流程按照到计算机上，同时我们使用的机器架构为`loongarch64`。
+本项目的`eigen.cpp`使用了`Eigen`库，按照如下流程安装到计算机上，同时我们使用的机器架构为`loongarch64`。
 ```
 wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz # 下载源代码
 tar -zxvf eigen-3.4.0.tar.gz #解压
