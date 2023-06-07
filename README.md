@@ -18,10 +18,10 @@
 |目标编号| 目标内容|
 |---|---|
 |1|CSR格式矩阵数据的文件正确读取|
-|2|使用龙芯架构基础/扩展向量指令集计算SpMV|
+|2|使用龙芯架构基础/扩展向量指令集计算SPMV|
 |3|多线程并行加速|
-|4|调研已有技术，优化SpMV计算，实现性能加速|
-|5|使用矩阵分块技术，优化SpMV|
+|4|调研已有技术，优化SPMV计算，实现性能加速|
+|5|使用矩阵分块技术，优化SPMV|
 
 
 
@@ -29,17 +29,17 @@
 |目标编号| 完成情况|说明|
 |---|---|---|
 |1|已完成|不仅支持读取CSR数据，还支持读取COO数据，并在预处理部分将其转换为CSR格式
-|2|已完成|采用汇编指令实现，支持float、double等多种数据类型的SpMV|
+|2|已完成|采用汇编指令实现，支持float、double等多种数据类型的SPMV|
 |3|已完成|使用OpenMP加速，实现并行计算|
 |4|已完成|搭建完成性能测试框架，并得到Eigen库函数、Naive方法性能对比结果，加速比接近2|
 |5|已完成|采用基于线程数的任务划分策略，实现负载均衡，减少线程通信开销|
-|总计|完成度100%|项目通过功能与性能测试，实现SpMV调优|
+|总计|完成度100%|项目通过功能与性能测试，实现SPMV调优|
 
 除此之外，我们还实现：
 1. 程序支持读取**COO**格式的数据，并提供稀疏矩阵CSR格式转换函数
 2. 支持**float、double**等不同数据类型的SIMD加速优化方法，提高项目的通用性
-3. 完成了**Eigen**库的移植与使用，作为SpMV计算结果的标准，便于检验结果的正确性
-4. 我们搭建了性能测试框架，实现Naive、Eigen库等多种方式的SpMV，并完成量化的性能测试结果
+3. 完成了**Eigen**库的移植与使用，作为SPMV计算结果的标准，便于检验结果的正确性
+4. 我们搭建了性能测试框架，实现Naive、Eigen库等多种方式的SPMV，并完成量化的性能测试结果
 5. 提供易用的测试脚本与说明，方便用户快速上手
 
 ## 开发计划与工作重要进展
@@ -391,9 +391,9 @@ std::vector<float> multiply4(const std::vector<float> &vector,
 ## 文献调研
 1. Williams S, Oliker L, Vuduc R, et al. Optimization of sparse matrix-vector multiplication on emerging multicore platforms[C]//Proceedings of the 2007 ACM/IEEE Conference on Supercomputing. 2007: 1-12.
 2. Grossman M, Thiele C, Araya-Polo M, et al. A survey of sparse matrix-vector multiplication performance on large matrices[J]. arXiv preprint arXiv:1608.00636, 2016.
-3. Bian H, Huang J, Liu L, et al. ALBUS: A method for efficiently processing SpMV using SIMD and Load balancing[J]. Future Generation Computer Systems, 2021, 116: 371-392.
+3. Bian H, Huang J, Liu L, et al. ALBUS: A method for efficiently processing SPMV using SIMD and Load balancing[J]. Future Generation Computer Systems, 2021, 116: 371-392.
 4. Giannoula C, Fernandez I, Luna J G, et al. Sparsep: Towards efficient sparse matrix vector multiplication on real processing-in-memory architectures[J]. Proceedings of the ACM on Measurement and Analysis of Computing Systems, 2022, 6(1): 1-49.
-5. Ohshima S, Katagiri T, Matsumoto M. Performance optimization of SpMV using CRS format by considering OpenMP scheduling on CPUs and MIC[C]//2014 IEEE 8th International Symposium on Embedded Multicore/Manycore SoCs. IEEE, 2014: 253-260.
+5. Ohshima S, Katagiri T, Matsumoto M. Performance optimization of SPMV using CRS format by considering OpenMP scheduling on CPUs and MIC[C]//2014 IEEE 8th International Symposium on Embedded Multicore/Manycore SoCs. IEEE, 2014: 253-260.
 6. 李亿渊, 薛巍, 陈德训, 等. 稀疏矩阵向量乘法在申威众核架构上的性能优化[J]. 计算机学报, 2020, 6.
 7. Merrill D, Garland M. Merge-based parallel sparse matrix-vector multiplication[C]//SC'16: Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis. IEEE, 2016: 678-689.
 8. Romero L F, Zapata E L. Data distributions for sparse matrix vector multiplication[J]. Parallel Computing, 1995, 21(4): 583-605.
