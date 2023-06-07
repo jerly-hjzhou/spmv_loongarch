@@ -47,15 +47,15 @@
 ### 第一阶段
 
 1. 调研现有的spmv优化技术，分析现有性能瓶颈 
- * [00_prepare.md](records/dev_docs/00_prepare.md)
+[00_prepare.md](records/dev_docs/00_prepare.md)
 2. 搭建开发环境，准备测试数据集，确定开发路线
-* [01_preResearch_part1.md](records/dev_docs/01_preResearch_part1.md)
+[01_preResearch_part1.md](records/dev_docs/01_preResearch_part1.md)
 ### 第二阶段
 
 1. 搭建性能测试框架，实现性能测试自动化
 2. 实现COO、CSR格式文件数据读取与格式转换
 3. 实现基本SPMV、移植Eigen库并应用到SPMV计算中
-* [01_preResearch_part2.md](records/dev_docs/01_preResearch_part2.md)
+[01_preResearch_part2.md](records/dev_docs/01_preResearch_part2.md)
 ### 第三阶段
 1. 成功使用基于LA64架构的向量指令集的SIMD优化
 2. 优化汇编程序，减少内存访问次数，充分发挥单指令多数据流的优势
@@ -63,7 +63,7 @@
 3. 成功实现double数据SIMD优化，增加SIMD支持的数据类型
 3. 成功使用多线程加速，实现并行运算处理 
 
-  * [02_preResearch_part1.md](records/dev_docs/02_deepResearch_part1.md)  
+[02_preResearch_part1.md](records/dev_docs/02_deepResearch_part1.md)  
 [02_preResearch_part2.md](records/dev_docs/02_deepResearch_par2.md)
 
 ### 第四阶段
