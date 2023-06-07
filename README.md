@@ -31,7 +31,7 @@
 |1|已完成|不仅支持读取CSR数据，还支持读取COO数据，并在预处理部分将其转换为CSR格式
 |2|已完成|采用汇编指令实现，支持float、double等多种数据类型的SpMV|
 |3|已完成|使用OpenMP加速，实现并行计算|
-|4|已完成|搭建完成性能测试框架，并得到Eigen库函数、Naive方法性能对比结果|
+|4|已完成|搭建完成性能测试框架，并得到Eigen库函数、Naive方法性能对比结果，加速比接近2|
 |5|已完成|采用基于线程数的任务划分策略，实现负载均衡，减少线程通信开销|
 |总计|完成度100%|项目通过功能与性能测试，实现SpMV调优|
 
@@ -42,6 +42,37 @@
 4. 我们搭建了性能测试框架，实现Naive、Eigen库等多种方式的SpMV，并完成量化的性能测试结果
 5. 提供易用的测试脚本与说明，方便用户快速上手
 
+## 开发计划与工作重要进展
+在本章节对开发过程中的项目重要进展进行总结，链接为项目开发对应的过程性技术文档。
+### 第一阶段
+
+1. 调研现有的spmv优化技术，分析现有性能瓶颈 
+ * [00_prepare.md](records/dev_docs/00_prepare.md)
+2. 搭建开发环境，准备测试数据集，确定开发路线
+* [01_preResearch_part1.md](records/dev_docs/01_preResearch_part1.md)
+### 第二阶段
+
+1. 搭建性能测试框架，实现性能测试自动化
+2. 实现COO、CSR格式文件数据读取与格式转换
+3. 实现基本SPMV、移植Eigen库并应用到SPMV计算中
+* [01_preResearch_part2.md](records/dev_docs/01_preResearch_part2.md)
+### 第三阶段
+1. 成功使用基于LA64架构的向量指令集的SIMD优化
+2. 优化汇编程序，减少内存访问次数，充分发挥单指令多数据流的优势
+3. 参数传递时将值传递修改为引用传递，性能得很好的提升，大幅减少数据复制带来的资源开销
+3. 成功实现double数据SIMD优化，增加SIMD支持的数据类型
+3. 成功使用多线程加速，实现并行运算处理 
+
+  * [02_preResearch_part1.md](records/dev_docs/02_deepResearch_part1.md)  
+[02_preResearch_part2.md](records/dev_docs/02_deepResearch_par2.md)
+
+### 第四阶段
+1. 在项目中引入基于线程数的任务划分策略，实现线程间的负载均衡，SPMV性能趋于稳定
+2. 引入迭代测试的思想，量化性能测试结果，撰写技术文档
+3. 项目提供易用的测试脚本与说明，初赛阶段项目开发进入收尾阶段
+* [02_preResearch_part3.md](records/dev_docs/02_deepResearch_part3.md)  
+[02_preResearch_part4.md](records/dev_docs/02_deepResearch_part4.md)
+
 ## CSR格式的SPMV介绍
 
 ![csr](./pic/csr.png){width=75%}
@@ -49,7 +80,7 @@
 CSR(Compressed Sparse Row)格式是存储稀疏矩阵的常用数据结构，如上图所示。相同行的元素用同一种颜色表示，矩阵`A`的元素值按序依次排列在`val`数组中，每个元素对应的列索引按同样的顺序存储在`ind` 数组中。`ptr`数组大小是行数加一，数组第一个元素存储的是矩阵第一行之前（不包括第一行）所有非零元素的总数，也就是0，数组第二个元素存储的是矩阵第二行之前（不包括第二行）所有非零元素的总数，以此类推。
 
 基于CSR格式的常规SPMV算法实现如下伪代码所示
-```
+```cpp
 // y <- A*x, where A is in CSR.
 for (i = 0; i < m; ++i) {
   for (k = ptr[i]; k < ptr[i+1]; ++k)
