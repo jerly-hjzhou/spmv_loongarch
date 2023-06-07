@@ -3,6 +3,8 @@
 本阶段解决负载不均衡带来的性能不稳定问题，参考现有的优化方法，在设计中引入一种基于线程数量的任务划分策略，使得各线程负载均衡，测试结果表明该方法有效解决性能不稳定的问题。编写技术文档，并进行迭代测试，进行项目最后的收尾工作。
 
 ## 基于线程数的任务划分策略
+我们阅读文献，希望从现有文献中找到灵感，来解决性能测试结果不稳定的问题，一方面需要在测试的时候增加迭代次数，另一方面我们准备参考论文中ALBUS的思想，对各线程进行负载均衡，尝试优化计算过程。
+
 #### 负载均衡策略
 在本项目中，为了充分利用CPU多核处理的优势，将计算任务按照线程数划分，将稀疏矩阵中所有的非零元素平均地划分到每个线程中，具体计算方式如下。
 
@@ -23,37 +25,6 @@ n=\begin{cases} nzz/tnums&(0\leq id \lt tnums-1)\\nzz-(nzz/tnums)*(tnums-1)&(id=
 
 该任务划分策略将计算机需要处理的负载绝对均匀地分配给每个线程，并在每个线程处理后进行统一的边界数据处理，该方法显著减少了块间边界数据处理的次数。在该项目边界数据处理次数等于线程数。下面伪代码中可以看出各线程运行结束后，边界元素计算结果保存在中间结果数组`result_mid`中，并行加速结束后，统一处理边界数据，从而得到最终的运算结果向量。
 
-```cpp
-std::vector<float> multiply(const std::vector<float> &vector,
-                            const MatrixCSR &matrix) {
-    
-    ...
-
-    #pragma omp parallel
-    {
-    #pragma omp for schedule(static) nowait
-    for (int i = 0; i < thread_nums; ++i) {
-        thread_block1(i, start[i], end[i], start1[i], end1[i], row_ptr, col_index,
-                    values, result, result_mid, vector);
-    }
-    }
-    result[0] = result_mid[0];
-    int sub;
-    for (int i = 1; i < thread_nums; ++i) {
-    sub = i << 1;
-    int tmp1 = start[i];
-    int tmp2 = end[i - 1];
-    if (tmp1 == tmp2) {
-        result[tmp1] += (result_mid[sub - 1] + result_mid[sub]);
-    } else {
-        result[tmp1] += result_mid[sub];
-        result[tmp2] += result_mid[sub - 1];
-    }
-
-    ...
-}
- 
-```
 
 为保证程序正确执行，在任务划分的同时需要记录每一组非零向量左右边界元素在原矩阵中的行索引，同时要记录每一组非零元素左边界在`values`数组中的索引，为降低时间复杂度，在本项目中采用二分的思想确定左右边界的行索引信息。
 ## 项目收获
